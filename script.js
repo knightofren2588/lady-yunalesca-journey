@@ -1,4 +1,4 @@
-// Lady Yunalesca's Tracker - Fixed Cloud Sync System
+// Lady Yunalesca's Complete Tracker - Full Script
 let yunalescaEntries = JSON.parse(localStorage.getItem('yunalesca_entries') || '[]');
 let yunalescaAchievements = JSON.parse(localStorage.getItem('yunalesca_achievements') || '[]');
 let yunalescaCharacterData = JSON.parse(localStorage.getItem('yunalesca_character_data') || '{}');
@@ -9,10 +9,44 @@ let githubToken = localStorage.getItem('yunalesca_github_token') || '';
 let isCloudEnabled = false;
 let lastSyncTime = 0;
 
+// Achievement definitions
+const achievements = [
+    { id: 'first_memory', name: 'First Teachings', description: 'Record your first memory in Azeroth', requirement: 'entries', value: 1, icon: '✨' },
+    { id: 'memory_keeper', name: 'Memory Sphere', description: 'Collect 5 memories from your journey', requirement: 'entries', value: 5, icon: '🔮' },
+    { id: 'chronicler', name: 'Crystal Keeper', description: 'Document 10 pivotal moments', requirement: 'entries', value: 10, icon: '💎' },
+    { id: 'shadow_awakening', name: 'Shadow Awakening', description: 'Reach level 10 - embrace the void', requirement: 'level', value: 10, icon: '🌙' },
+    { id: 'void_apprentice', name: 'Between Worlds', description: 'Attain level 20 - bridge Spira and Azeroth', requirement: 'level', value: 20, icon: '🌌' },
+    { id: 'shadow_adept', name: 'Eternal Wisdom', description: 'Achieve level 40 - ancient power awakens', requirement: 'level', value: 40, icon: '⚫' },
+    { id: 'void_master', name: 'Lady of Azeroth', description: 'Reach level 60 - transcend mortality', requirement: 'level', value: 60, icon: '👑' },
+    { id: 'shadow_legend', name: 'Void Lord', description: 'Ascend to level 80 - become one with eternity', requirement: 'level', value: 80, icon: '🖤' },
+    { id: 'dungeon_delver', name: 'Cloister Trial', description: 'Complete your first dungeon trial', requirement: 'dungeon', value: 1, icon: '🏛️' },
+    { id: 'raid_legend', name: 'Grand Trial', description: 'Conquer your first raid challenge', requirement: 'raid', value: 1, icon: '⚔️' },
+    { id: 'pvp_warrior', name: 'Shadow Duelist', description: 'Engage in player combat', requirement: 'pvp', value: 1, icon: '🗡️' },
+    { id: 'explorer', name: 'Realm Walker', description: 'Visit 5 different realms', requirement: 'zones', value: 5, icon: '🌍' },
+    { id: 'wanderer', name: 'Planar Wanderer', description: 'Explore 10 unique locations', requirement: 'zones', value: 10, icon: '🗺️' },
+    { id: 'screenshot_master', name: 'Memory Crystal', description: 'Capture 3 moments with images', requirement: 'screenshots', value: 3, icon: '📸' },
+    { id: 'lore_keeper', name: 'Sphere Grid Walker', description: 'Write 1000 words of memories', requirement: 'words', value: 1000, icon: '📜' },
+    { id: 'eternal_chronicler', name: 'Eternal Summoner', description: 'Complete 25 journal entries', requirement: 'entries', value: 25, icon: '♾️' },
+    { id: 'legendary_scribe', name: 'Fayth\'s Echo', description: 'Transcribe 5000 words of your journey', requirement: 'words', value: 5000, icon: '📚' }
+];
+
+// Character quotes
+const yunalescaQuotes = [
+    "Death is not to be feared, but embraced as the final aeon of one's journey.",
+    "In Azeroth, as in Spira, the eternal spiral of life and death continues.",
+    "The void whispers truths that even the Fayth could not comprehend.",
+    "I have crossed realms, from dream to reality, from light to shadow.",
+    "Each memory crystallized is a step toward eternal understanding.",
+    "The Old Gods speak in tongues familiar to one who has communed with Sin.",
+    "In shadow magic, I find echoes of the forbidden arts of Spira.",
+    "Mortality is but an illusion - I have transcended such limitations.",
+    "The spiral of death that plagued Spira finds new form in this realm.",
+    "Between worlds I walk, carrying wisdom from both Spira and Azeroth."
+];
+
 // Unicode-safe base64 encoding
 function unicodeToBase64(str) {
     try {
-        // Convert Unicode string to base64 safely
         return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function(match, p1) {
             return String.fromCharCode('0x' + p1);
         }));
@@ -24,7 +58,6 @@ function unicodeToBase64(str) {
 
 function base64ToUnicode(str) {
     try {
-        // Convert base64 back to Unicode string safely
         return decodeURIComponent(atob(str).split('').map(function(c) {
             return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
         }).join(''));
@@ -34,7 +67,7 @@ function base64ToUnicode(str) {
     }
 }
 
-// Initialize cloud sync status
+// Cloud sync status update
 function updateSyncStatus(message, isError = false) {
     const statusElement = document.getElementById('sync-status');
     if (statusElement) {
@@ -50,16 +83,15 @@ function updateSyncStatus(message, isError = false) {
     }
 }
 
-// Improved cloud sync functions
+// Cloud sync functions
 async function syncToCloud() {
     if (!isCloudEnabled || !githubToken) {
         console.log('Cloud sync disabled or no token');
         return false;
     }
 
-    // Prevent too frequent syncing (rate limiting)
     const now = Date.now();
-    if (now - lastSyncTime < 5000) { // 5 second cooldown
+    if (now - lastSyncTime < 5000) {
         console.log('Sync cooldown active');
         return false;
     }
@@ -79,7 +111,6 @@ async function syncToCloud() {
         const content = JSON.stringify(data, null, 2);
         const encodedContent = unicodeToBase64(content);
 
-        // First, try to get the current file to get its SHA
         let sha = null;
         try {
             const getResponse = await fetch('https://api.github.com/repos/knightofren2588/lady-yunalesca-journey/contents/data/yunalesca-data.json', {
@@ -97,7 +128,6 @@ async function syncToCloud() {
             console.log('File does not exist yet, will create new');
         }
 
-        // Create or update the file
         const response = await fetch('https://api.github.com/repos/knightofren2588/lady-yunalesca-journey/contents/data/yunalesca-data.json', {
             method: 'PUT',
             headers: {
@@ -124,17 +154,17 @@ async function syncToCloud() {
                 updateSyncStatus('❌ Invalid token - check permissions', true);
             } else if (response.status === 403) {
                 updateSyncStatus('❌ Rate limited - will retry soon', true);
-                setTimeout(() => syncToCloud(), 60000); // Retry in 1 minute
+                setTimeout(() => syncToCloud(), 60000);
             } else {
                 updateSyncStatus('❌ Sync failed - will retry', true);
-                setTimeout(() => syncToCloud(), 10000); // Retry in 10 seconds
+                setTimeout(() => syncToCloud(), 10000);
             }
             return false;
         }
     } catch (error) {
         console.error('Cloud sync error:', error);
         updateSyncStatus('❌ Sync error - will retry', true);
-        setTimeout(() => syncToCloud(), 15000); // Retry in 15 seconds
+        setTimeout(() => syncToCloud(), 15000);
         return false;
     }
 }
@@ -160,13 +190,11 @@ async function loadFromCloud() {
             const decodedContent = base64ToUnicode(fileData.content);
             const cloudData = JSON.parse(decodedContent);
 
-            // Load cloud data
             yunalescaEntries = cloudData.entries || [];
             yunalescaAchievements = cloudData.achievements || [];
             yunalescaCharacterData = cloudData.character || {};
             currentPortrait = cloudData.portrait || '';
 
-            // Save to local storage
             localStorage.setItem('yunalesca_entries', JSON.stringify(yunalescaEntries));
             localStorage.setItem('yunalesca_achievements', JSON.stringify(yunalescaAchievements));
             localStorage.setItem('yunalesca_character_data', JSON.stringify(yunalescaCharacterData));
@@ -175,7 +203,6 @@ async function loadFromCloud() {
             updateSyncStatus('✅ Loaded from cloud', false);
             console.log('✅ Successfully loaded from cloud');
             
-            // Refresh the display
             displayEntries();
             updateAchievements();
             updateCharacterDisplay();
@@ -209,7 +236,6 @@ async function testCloudConnection() {
         console.log('🧪 Testing cloud connection...');
         updateSyncStatus('🧪 Testing connection...', false);
 
-        // Test repository access
         const repoResponse = await fetch('https://api.github.com/repos/knightofren2588/lady-yunalesca-journey', {
             headers: {
                 'Authorization': `token ${githubToken}`,
@@ -225,7 +251,6 @@ async function testCloudConnection() {
 
         console.log('✅ Repository access: OK');
 
-        // Test if we can create files in the repo
         const testContent = unicodeToBase64('{"test": "connection", "timestamp": "' + new Date().toISOString() + '"}');
         
         const testResponse = await fetch('https://api.github.com/repos/knightofren2588/lady-yunalesca-journey/contents/data/test-connection.json', {
@@ -245,7 +270,6 @@ async function testCloudConnection() {
             console.log('✅ Cloud connection test: SUCCESS');
             updateSyncStatus('✅ Connection test passed', false);
             
-            // Clean up test file
             const testData = await testResponse.json();
             await fetch('https://api.github.com/repos/knightofren2588/lady-yunalesca-journey/contents/data/test-connection.json', {
                 method: 'DELETE',
@@ -270,8 +294,7 @@ async function testCloudConnection() {
     }
 }
 
-// Rest of your existing functions (keeping all the original functionality)...
-
+// Entry management functions
 function addEntry() {
     const form = document.getElementById('entry-form');
     const formData = new FormData(form);
@@ -288,20 +311,17 @@ function addEntry() {
         timestamp: new Date().toISOString()
     };
 
-    // Handle screenshot
     const fileInput = document.getElementById('screenshot');
     if (fileInput.files && fileInput.files[0]) {
         const file = fileInput.files[0];
         const reader = new FileReader();
         
         reader.onload = function(e) {
-            // Compress and resize image
             const img = new Image();
             img.onload = function() {
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
                 
-                // Calculate new dimensions (max 800px width)
                 let { width, height } = img;
                 const maxWidth = 800;
                 if (width > maxWidth) {
@@ -312,7 +332,6 @@ function addEntry() {
                 canvas.width = width;
                 canvas.height = height;
                 
-                // Draw and compress
                 ctx.drawImage(img, 0, 0, width, height);
                 const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
                 
@@ -335,12 +354,10 @@ function saveEntry(entry) {
     updateAchievements();
     resetForm();
     
-    // Sync to cloud
     if (isCloudEnabled) {
         syncToCloud();
     }
     
-    // Show success message
     showNotification('✨ Memory crystallized in the eternal archive');
 }
 
@@ -350,7 +367,6 @@ function deleteEntry(entryId) {
     
     const entry = yunalescaEntries[entryIndex];
     
-    // Show confirmation modal
     const modal = document.createElement('div');
     modal.className = 'modal-overlay';
     modal.innerHTML = `
@@ -369,25 +385,17 @@ function deleteEntry(entryId) {
 }
 
 function confirmDelete(entryId) {
-    // Remove from array
     yunalescaEntries = yunalescaEntries.filter(entry => entry.id !== entryId);
-    
-    // Save to localStorage
     localStorage.setItem('yunalesca_entries', JSON.stringify(yunalescaEntries));
     
-    // Update display
     displayEntries();
     updateAchievements();
     
-    // Sync to cloud
     if (isCloudEnabled) {
         syncToCloud();
     }
     
-    // Remove modal
     document.querySelector('.modal-overlay').remove();
-    
-    // Show notification
     showNotification('💔 Memory dissolved from the eternal archive');
 }
 
@@ -435,12 +443,196 @@ function displayEntries() {
     `).join('');
 }
 
-// Cloud sync setup functions
+// Achievement system
+function updateAchievements() {
+    const currentStats = calculateStats();
+    let newAchievements = 0;
+
+    achievements.forEach(achievement => {
+        if (!yunalescaAchievements.includes(achievement.id)) {
+            let unlocked = false;
+
+            switch (achievement.requirement) {
+                case 'entries':
+                    unlocked = currentStats.totalEntries >= achievement.value;
+                    break;
+                case 'level':
+                    unlocked = currentStats.maxLevel >= achievement.value;
+                    break;
+                case 'dungeon':
+                    unlocked = currentStats.dungeonEntries >= achievement.value;
+                    break;
+                case 'raid':
+                    unlocked = currentStats.raidEntries >= achievement.value;
+                    break;
+                case 'pvp':
+                    unlocked = currentStats.pvpEntries >= achievement.value;
+                    break;
+                case 'zones':
+                    unlocked = currentStats.uniqueZones >= achievement.value;
+                    break;
+                case 'screenshots':
+                    unlocked = currentStats.screenshotEntries >= achievement.value;
+                    break;
+                case 'words':
+                    unlocked = currentStats.totalWords >= achievement.value;
+                    break;
+            }
+
+            if (unlocked) {
+                yunalescaAchievements.push(achievement.id);
+                newAchievements++;
+                showAchievementNotification(achievement);
+            }
+        }
+    });
+
+    if (newAchievements > 0) {
+        localStorage.setItem('yunalesca_achievements', JSON.stringify(yunalescaAchievements));
+        if (isCloudEnabled) {
+            syncToCloud();
+        }
+    }
+
+    displayAchievements();
+}
+
+function calculateStats() {
+    const stats = {
+        totalEntries: yunalescaEntries.length,
+        maxLevel: Math.max(...yunalescaEntries.map(e => e.level), 0),
+        dungeonEntries: yunalescaEntries.filter(e => e.type === 'Dungeon').length,
+        raidEntries: yunalescaEntries.filter(e => e.type === 'Raid').length,
+        pvpEntries: yunalescaEntries.filter(e => e.type === 'PvP').length,
+        uniqueZones: new Set(yunalescaEntries.map(e => e.realm)).size,
+        screenshotEntries: yunalescaEntries.filter(e => e.screenshot).length,
+        totalWords: yunalescaEntries.reduce((total, e) => total + e.description.split(' ').length, 0)
+    };
+    return stats;
+}
+
+function displayAchievements() {
+    const achievementsContainer = document.getElementById('achievements-list');
+    
+    achievementsContainer.innerHTML = achievements.map(achievement => {
+        const isUnlocked = yunalescaAchievements.includes(achievement.id);
+        return `
+            <div class="achievement-card ${isUnlocked ? 'unlocked' : 'locked'}">
+                <div class="achievement-icon">${achievement.icon}</div>
+                <div class="achievement-info">
+                    <h4>${achievement.name}</h4>
+                    <p>${achievement.description}</p>
+                </div>
+                <div class="achievement-status">
+                    ${isUnlocked ? '✅' : '🔒'}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function showAchievementNotification(achievement) {
+    const notification = document.createElement('div');
+    notification.className = 'achievement-notification';
+    notification.innerHTML = `
+        <div class="achievement-content">
+            <div class="achievement-icon">${achievement.icon}</div>
+            <div>
+                <h4>Achievement Unlocked!</h4>
+                <p>${achievement.name}</p>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    setTimeout(() => notification.classList.add('show'), 100);
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => notification.remove(), 300);
+    }, 4000);
+}
+
+// Character functions
+function updateCharacterDisplay() {
+    updateCharacterPortrait();
+    updateCharacterQuote();
+    updateCharacterMood();
+}
+
+function updateCharacterPortrait() {
+    const portraitImg = document.getElementById('character-portrait');
+    if (currentPortrait) {
+        portraitImg.src = currentPortrait;
+        portraitImg.style.display = 'block';
+    }
+}
+
+function uploadPortrait() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    
+    input.onchange = function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    const size = 300;
+                    canvas.width = size;
+                    canvas.height = size;
+                    
+                    const scale = Math.max(size / img.width, size / img.height);
+                    const x = (size - img.width * scale) / 2;
+                    const y = (size - img.height * scale) / 2;
+                    
+                    ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+                    
+                    currentPortrait = canvas.toDataURL('image/jpeg', 0.8);
+                    localStorage.setItem('yunalesca_portrait', currentPortrait);
+                    updateCharacterPortrait();
+                    
+                    if (isCloudEnabled) {
+                        syncToCloud();
+                    }
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+    
+    input.click();
+}
+
+function updateCharacterQuote() {
+    const quoteElement = document.getElementById('character-quote');
+    const randomQuote = yunalescaQuotes[Math.floor(Math.random() * yunalescaQuotes.length)];
+    quoteElement.textContent = `"${randomQuote}"`;
+}
+
+function updateCharacterMood() {
+    const stats = calculateStats();
+    let mood = 'Contemplative';
+    
+    if (stats.maxLevel >= 60) mood = 'Transcendent';
+    else if (stats.maxLevel >= 40) mood = 'Empowered';
+    else if (stats.maxLevel >= 20) mood = 'Awakened';
+    else if (stats.totalEntries >= 10) mood = 'Focused';
+    else if (stats.totalEntries >= 5) mood = 'Curious';
+    
+    document.getElementById('character-mood').textContent = mood;
+}
+
+// Cloud setup functions
 function setupCloudSync() {
     const modal = document.getElementById('cloud-setup-modal');
     const tokenInput = document.getElementById('github-token-input');
     
-    // Pre-fill if token exists
     if (githubToken) {
         tokenInput.value = githubToken;
     }
@@ -461,22 +653,17 @@ async function connectToCloud() {
         return;
     }
     
-    // Save token
     githubToken = newToken;
     localStorage.setItem('yunalesca_github_token', githubToken);
     
-    // Test connection
     await testCloudConnection();
     
-    // Try to load existing data
     const hasCloudData = await loadFromCloud();
     
     if (!hasCloudData) {
-        // No cloud data, sync current local data
         await syncToCloud();
     }
     
-    // Enable cloud sync
     isCloudEnabled = true;
     document.getElementById('cloud-sync-btn').innerHTML = '☁️ Connected';
     document.getElementById('cloud-sync-btn').classList.add('connected');
@@ -486,14 +673,13 @@ async function connectToCloud() {
 
 function forceSync() {
     if (isCloudEnabled) {
-        lastSyncTime = 0; // Reset cooldown
+        lastSyncTime = 0;
         syncToCloud();
     } else {
         setupCloudSync();
     }
 }
 
-// Initialize cloud sync on page load
 function initializeCloudSync() {
     const savedToken = localStorage.getItem('yunalesca_github_token');
     if (savedToken) {
@@ -502,22 +688,88 @@ function initializeCloudSync() {
         document.getElementById('cloud-sync-btn').innerHTML = '☁️ Connected';
         document.getElementById('cloud-sync-btn').classList.add('connected');
         
-        // Load from cloud on startup
         loadFromCloud();
+    }
+}
+
+// Utility functions
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+    });
+}
+
+function formatTimestamp(timestamp) {
+    const date = new Date(timestamp);
+    return date.toLocaleString();
+}
+
+function viewFullImage(src) {
+    const overlay = document.createElement('div');
+    overlay.className = 'image-overlay';
+    overlay.innerHTML = `
+        <div class="image-container">
+            <img src="${src}" alt="Full Size Memory">
+            <button class="close-btn" onclick="this.parentElement.parentElement.remove()">✕</button>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+}
+
+function showNotification(message) {
+    const notification = document.createElement('div');
+    notification.className = 'notification';
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    setTimeout(() => notification.classList.add('show'), 100);
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
+function resetForm() {
+    document.getElementById('entry-form').reset();
+    document.getElementById('date').value = new Date().toISOString().split('T')[0];
+    
+    const customRealmInput = document.getElementById('custom-realm-input');
+    customRealmInput.style.display = 'none';
+    customRealmInput.classList.remove('show');
+}
+
+// Form handlers
+function handleRealmChange() {
+    const realmSelect = document.getElementById('realm');
+    const customRealmInput = document.getElementById('custom-realm-input');
+    
+    if (realmSelect.value === 'custom') {
+        customRealmInput.style.display = 'block';
+        customRealmInput.classList.add('show');
+        document.getElementById('custom-realm').focus();
+    } else {
+        customRealmInput.style.display = 'none';
+        customRealmInput.classList.remove('show');
     }
 }
 
 // Event listeners
 document.addEventListener('DOMContentLoaded', function() {
+    // Set default date
+    document.getElementById('date').value = new Date().toISOString().split('T')[0];
+    
+    // Initialize everything
     initializeCloudSync();
     displayEntries();
     updateAchievements();
     updateCharacterDisplay();
     
-    // Cloud sync button
+    // Cloud sync button handler
     document.getElementById('cloud-sync-btn').addEventListener('click', function() {
         if (isCloudEnabled) {
-            // Show cloud menu
             const menu = document.createElement('div');
             menu.className = 'cloud-menu';
             menu.innerHTML = `
@@ -535,7 +787,27 @@ document.addEventListener('DOMContentLoaded', function() {
             setupCloudSync();
         }
     });
+
+    // Form submission
+    document.getElementById('entry-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        addEntry();
+    });
+    
+    // Realm change handler
+    document.getElementById('realm').addEventListener('change', handleRealmChange);
+    
+    // Character interactions
+    document.getElementById('character-portrait').addEventListener('click', uploadPortrait);
+    document.getElementById('character-quote').addEventListener('click', updateCharacterQuote);
 });
 
-// Rest of your existing functions (achievements, character display, etc.)
-// ... keeping all the original functionality intact ...
+// Make functions globally accessible
+window.deleteEntry = deleteEntry;
+window.confirmDelete = confirmDelete;
+window.viewFullImage = viewFullImage;
+window.setupCloudSync = setupCloudSync;
+window.closeCloudSetup = closeCloudSetup;
+window.connectToCloud = connectToCloud;
+window.forceSync = forceSync;
+window.testCloudConnection = testCloudConnection;
