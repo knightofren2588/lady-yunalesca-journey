@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lady Yunalesca's Journey - From Spira to Azeroth</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="background-effects">
+        <div class="ethereal-orbs"></div>
+        <div class="spiraling-mist"></div>
+    </div>
+
+    <div class="container">
+        <!-- Character Header -->
+        <header class="character-header">
+            <div class="character-portrait-container">
+                <div class="character-portrait" id="characterPortrait">
+                    <div class="portrait-upload-overlay">
+                        <span class="upload-icon">📸</span>
+                        <span class="tooltip">Click to upload Lady Yunalesca's portrait</span>
+                    </div>
+                    <input type="file" id="portraitUpload" accept="image/*" style="display: none;">
+                </div>
+                <div class="eternal-glow"></div>
+            </div>
+            
+            <div class="character-info">
+                <h1 class="character-name">Lady Yunalesca</h1>
+                <p class="character-title">Eternal Summoner • Shadow Priest of Azeroth</p>
+                
+                <div class="character-bio">
+                    <p class="bio-text">
+                        Once the first summoner to defeat Sin in the world of Spira, Lady Yunalesca 
+                        has transcended realms to walk among the shadows of Azeroth. Her eternal 
+                        existence grants her unique insight into the void's whispers, blending 
+                        ancient summoning wisdom with the dark arts of shadow magic.
+                    </p>
+                    <p class="bio-subtitle">
+                        "From Spira's spiral of death to Azeroth's endless conflicts - 
+                        I have seen the truth that spans all worlds."
+                    </p>
+                </div>
+
+                <div class="character-quotes" id="characterQuotes">
+                    <div class="quote-content">
+                        <p id="currentQuote">The threads of fate weave differently in this realm, yet darkness remains constant...</p>
+                        <div class="mood-indicator" id="moodIndicator">👁️ Observing</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Achievement Badges -->
+            <div class="achievement-display" id="achievementDisplay">
+                <h3>Eternal Achievements</h3>
+                <div class="achievement-grid" id="achievementGrid">
+                    <!-- Achievements will be populated by JavaScript -->
+                </div>
+            </div>
+        </header>
+
+        <!-- Controls -->
+        <div class="controls">
+            <button class="btn-primary" id="addEntryBtn">✨ Record New Memory</button>
+            <div class="stats-summary" id="statsSummary">
+                <span class="stat">📜 <span id="totalEntries">0</span> Memories</span>
+                <span class="stat">📸 <span id="totalScreenshots">0</span> Moments</span>
+                <span class="stat">🏆 <span id="totalAchievements">0</span> Achievements</span>
+            </div>
+        </div>
+
+        <!-- Progress Entries -->
+        <div class="progress-container" id="progressContainer">
+            <div class="empty-state" id="emptyState">
+                <div class="empty-icon">🌙</div>
+                <h3>Begin Your Azerothian Journey</h3>
+                <p>Start documenting Lady Yunalesca's adventures in this new realm...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Entry Modal -->
+    <div class="modal" id="addEntryModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Record New Memory</h2>
+                <button class="close-btn" id="closeModal">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <form id="entryForm">
+                    <div class="form-section">
+                        <div class="form-group">
+                            <label for="entryDate">Date of Memory:</label>
+                            <input type="date" id="entryDate" required>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="currentZone">Current Realm:</label>
+                                <select id="currentZone" required>
+                                    <option value="">Select Location...</option>
+                                    
+                                    <!-- Major Cities -->
+                                    <option value="Stormwind City">Stormwind City</option>
+                                    <option value="Orgrimmar">Orgrimmar</option>
+                                    <option value="Ironforge">Ironforge</option>
+                                    <option value="Darnassus">Darnassus</option>
+                                    <option value="Thunder Bluff">Thunder Bluff</option>
+                                    <option value="Undercity">Undercity</option>
+                                    <option value="Silvermoon City">Silvermoon City</option>
+                                    <option value="The Exodar">The Exodar</option>
+                                    
+                                    <!-- Starting Zones -->
+                                    <option value="Elwynn Forest">Elwynn Forest</option>
+                                    <option value="Dun Morogh">Dun Morogh</option>
+                                    <option value="Teldrassil">Teldrassil</option>
+                                    <option value="Durotar">Durotar</option>
+                                    <option value="Mulgore">Mulgore</option>
+                                    <option value="Tirisfal Glades">Tirisfal Glades</option>
+                                    <option value="Eversong Woods">Eversong Woods</option>
+                                    <option value="Ghostlands">Ghostlands</option>
+                                    <option value="Azuremyst Isle">Azuremyst Isle</option>
+                                    <option value="Bloodmyst Isle">Bloodmyst Isle</option>
+                                    
+                                    <!-- Classic Zones -->
+                                    <option value="Westfall">Westfall</option>
+                                    <option value="The Barrens">The Barrens</option>
+                                    <option value="Silverpine Forest">Silverpine Forest</option>
+                                    <option value="Redridge Mountains">Redridge Mountains</option>
+                                    <option value="Darkshore">Darkshore</option>
+                                    <option value="Loch Modan">Loch Modan</option>
+                                    <option value="Wetlands">Wetlands</option>
+                                    <option value="Ashenvale">Ashenvale</option>
+                                    <option value="Stonetalon Mountains">Stonetalon Mountains</option>
+                                    <option value="Arathi Highlands">Arathi Highlands</option>
+                                    <option value="Stranglethorn Vale">Stranglethorn Vale</option>
+                                    <option value="Desolace">Desolace</option>
+                                    <option value="Thousand Needles">Thousand Needles</option>
+                                    <option value="Tanaris">Tanaris</option>
+                                    <option value="Azshara">Azshara</option>
+                                    <option value="Felwood">Felwood</option>
+                                    <option value="Un'Goro Crater">Un'Goro Crater</option>
+                                    <option value="Silithus">Silithus</option>
+                                    <option value="Eastern Plaguelands">Eastern Plaguelands</option>
+                                    <option value="Western Plaguelands">Western Plaguelands</option>
+                                    <option value="Winterspring">Winterspring</option>
+                                    <option value="Burning Steppes">Burning Steppes</option>
+                                    <option value="Badlands">Badlands</option>
+                                    <option value="Swamp of Sorrows">Swamp of Sorrows</option>
+                                    <option value="Blasted Lands">Blasted Lands</option>
+                                    
+                                    <!-- Expansion Zones -->
+                                    <option value="Outland">Outland</option>
+                                    <option value="Northrend">Northrend</option>
+                                    <option value="Cataclysm Zones">Cataclysm Zones</option>
+                                    <option value="Pandaria">Pandaria</option>
+                                    <option value="Draenor">Draenor</option>
+                                    <option value="Broken Isles">Broken Isles</option>
+                                    <option value="Zandalar">Zandalar</option>
+                                    <option value="Kul Tiras">Kul Tiras</option>
+                                    <option value="Shadowlands">Shadowlands</option>
+                                    <option value="Dragon Isles">Dragon Isles</option>
+                                    <option value="Khaz Algar">Khaz Algar</option>
+                                    
+                                    <!-- Activities -->
+                                    <option value="Dungeon">Dungeon</option>
+                                    <option value="Raid">Raid</option>
+                                    <option value="PvP">PvP</option>
+                                    <option value="Other">Other (Custom)</option>
+                                </select>
+                            </div>
+
+                            <!-- Custom Zone Input (Hidden by default) -->
+                            <div class="form-group" id="customZoneGroup" style="display: none;">
+                                <label for="customZone">Custom Realm Name:</label>
+                                <input type="text" id="customZone" placeholder="Enter custom zone name (e.g., Isle of Quel'Danas, Suramar, etc.)">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="entryType">Memory Type:</label>
+                                <select id="entryType" required>
+                                    <option value="">Select Type...</option>
+                                    <option value="story">Story Progress</option>
+                                    <option value="milestone">Level Milestone</option>
+                                    <option value="achievement">Achievement</option>
+                                    <option value="dungeon">Dungeon Journey</option>
+                                    <option value="raid">Raid Encounter</option>
+                                    <option value="pvp">Conflict (PvP)</option>
+                                    <option value="quest">Quest Completion</option>
+                                    <option value="exploration">Realm Exploration</option>
+                                    <option value="social">Fellowship</option>
+                                    <option value="profession">Craft Mastery</option>
+                                    <option value="mount">New Companion</option>
+                                    <option value="gear">Equipment Upgrade</option>
+                                    <option value="other">Other Memory</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <div class="form-group">
+                            <label for="entryDescription">Memory Description:</label>
+                            <textarea id="entryDescription" rows="4" placeholder="Describe this moment in your journey through Azeroth..." required></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="personalNotes">Personal Reflections:</label>
+                            <textarea id="personalNotes" rows="3" placeholder="Your thoughts on how this differs from your experiences in Spira..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="currentLevel">Current Level:</label>
+                                <input type="number" id="currentLevel" min="1" max="80" placeholder="1-80">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="currentSpec">Shadow Arts:</label>
+                                <select id="currentSpec">
+                                    <option value="">Select Discipline...</option>
+                                    <option value="Shadow">Shadow Mastery</option>
+                                    <option value="Discipline">Disciplined Balance</option>
+                                    <option value="Holy">Sacred Light</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="currentGear">Equipment & Crafts:</label>
+                            <textarea id="currentGear" rows="2" placeholder="Notable equipment, profession progress, items of power..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <div class="form-group screenshot-upload">
+                            <label for="screenshotUpload">📸 Memory Crystal (Screenshot - Max 8MB):</label>
+                            <div class="upload-area" id="uploadArea">
+                                <input type="file" id="screenshotUpload" accept="image/*">
+                                <div class="upload-instructions">
+                                    <span class="upload-icon">📷</span>
+                                    <span class="upload-text">Capture this eternal moment!</span>
+                                    <span class="upload-size">Supported: JPG, PNG, GIF, WebP (Max 8MB)</span>
+                                </div>
+                            </div>
+                            <div class="upload-feedback" id="uploadFeedback"></div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" id="cancelBtn">Cancel</button>
+                <button type="submit" class="btn-primary" id="saveBtn" form="entryForm">Preserve Memory</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Achievement Notification -->
+    <div class="achievement-notification" id="achievementNotification">
+        <div class="achievement-content">
+            <div class="achievement-icon">🏆</div>
+            <div class="achievement-text">
+                <h4>Eternal Achievement Unlocked!</h4>
+                <p id="achievementTitle"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Full Screen Image Overlay -->
+    <div class="image-overlay" id="imageOverlay">
+        <div class="overlay-content">
+            <img id="overlayImage" src="" alt="Full size memory crystal">
+            <button class="close-overlay" id="closeOverlay">&times;</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
