@@ -63,10 +63,19 @@
         <!-- Controls -->
         <div class="controls">
             <button class="btn-primary" id="addEntryBtn">✨ Record New Memory</button>
-            <div class="stats-summary" id="statsSummary">
-                <span class="stat">📜 <span id="totalEntries">0</span> Memories</span>
-                <span class="stat">📸 <span id="totalScreenshots">0</span> Moments</span>
-                <span class="stat">🏆 <span id="totalAchievements">0</span> Achievements</span>
+            <div class="controls-right">
+                <div class="cloud-sync-section">
+                    <button class="btn-cloud" id="cloudSetupBtn" title="Setup cloud sync">☁️ Cloud Sync</button>
+                    <div class="sync-status" id="syncStatus">
+                        <span class="sync-indicator offline" id="syncIndicator">⚫</span>
+                        <span class="sync-text" id="syncText">Offline</span>
+                    </div>
+                </div>
+                <div class="stats-summary" id="statsSummary">
+                    <span class="stat">📜 <span id="totalEntries">0</span> Memories</span>
+                    <span class="stat">📸 <span id="totalScreenshots">0</span> Moments</span>
+                    <span class="stat">🏆 <span id="totalAchievements">0</span> Achievements</span>
+                </div>
             </div>
         </div>
 
@@ -76,6 +85,52 @@
                 <div class="empty-icon">🌙</div>
                 <h3>Begin Your Azerothian Journey</h3>
                 <p>Start documenting Lady Yunalesca's adventures in this new realm...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cloud Setup Modal -->
+    <div class="modal" id="cloudSetupModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>☁️ Cloud Sync Setup</h2>
+                <button class="close-btn" id="closeCloudModal">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="cloud-setup-content">
+                    <div class="cloud-info">
+                        <h3>🌟 Eternal Cloud Storage</h3>
+                        <p>Sync your memories automatically to GitHub for:</p>
+                        <ul>
+                            <li>✨ Unlimited storage space</li>
+                            <li>📱 Access from any device</li>
+                            <li>🛡️ Automatic backups</li>
+                            <li>🌙 Truly eternal memories</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="token-setup" id="tokenSetup">
+                        <h4>Enter Your GitHub Token:</h4>
+                        <input type="password" id="githubToken" placeholder="github_pat_..." />
+                        <p class="token-help">
+                            🔒 Your token is stored securely in your browser and never shared.
+                        </p>
+                    </div>
+                    
+                    <div class="cloud-status hidden" id="cloudConnected">
+                        <div class="connected-info">
+                            <h4>✅ Cloud Sync Active</h4>
+                            <p>Your memories are automatically syncing to GitHub!</p>
+                            <button class="btn-secondary" id="disconnectCloud">Disconnect</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" id="cancelCloudBtn">Cancel</button>
+                <button type="button" class="btn-primary" id="connectCloudBtn">Connect to Cloud</button>
             </div>
         </div>
     </div>

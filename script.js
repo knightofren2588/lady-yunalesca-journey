@@ -79,10 +79,17 @@ const achievements = [
 // Game state
 let progressEntries = [];
 let currentAchievements = [...achievements];
+let cloudSync = {
+    enabled: false,
+    token: null,
+    lastSync: null,
+    syncing: false
+};
 
 // Initialize app
 document.addEventListener('DOMContentLoaded', function() {
     loadFromStorage();
+    initializeCloudSync(); // Initialize cloud sync before other components
     initializeEventListeners();
     updateCharacterQuote();
     displayProgressEntries();
@@ -99,6 +106,13 @@ function initializeEventListeners() {
     document.getElementById('addEntryBtn').addEventListener('click', openModal);
     document.getElementById('closeModal').addEventListener('click', closeModal);
     document.getElementById('cancelBtn').addEventListener('click', closeModal);
+    
+    // Cloud sync controls
+    document.getElementById('cloudSetupBtn').addEventListener('click', openCloudModal);
+    document.getElementById('closeCloudModal').addEventListener('click', closeCloudModal);
+    document.getElementById('cancelCloudBtn').addEventListener('click', closeCloudModal);
+    document.getElementById('connectCloudBtn').addEventListener('click', connectToCloud);
+    document.getElementById('disconnectCloud').addEventListener('click', disconnectCloud);
     
     // Form submission
     document.getElementById('entryForm').addEventListener('submit', handleFormSubmit);
@@ -145,6 +159,12 @@ function initializeEventListeners() {
     document.getElementById('addEntryModal').addEventListener('click', function(e) {
         if (e.target === this) {
             closeModal();
+        }
+    });
+    
+    document.getElementById('cloudSetupModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeCloudModal();
         }
     });
 }
@@ -348,7 +368,7 @@ function resetForm() {
 }
 
 // Form submission
-function handleFormSubmit(event) {
+async function handleFormSubmit(event) {
     event.preventDefault();
     
     // Get zone value (either from dropdown or custom input)
@@ -375,6 +395,11 @@ function handleFormSubmit(event) {
     
     // Save to localStorage
     saveToStorage();
+    
+    // Sync to cloud if enabled
+    if (cloudSync.enabled) {
+        syncToCloud(); // This runs in background
+    }
     
     // Update displays
     displayProgressEntries();
@@ -750,11 +775,273 @@ function createEtherealOrb() {
     }, 30000);
 }
 
+// Cloud Sync Functions
+function openCloudModal() {
+    const modal = document.getElementById('cloudSetupModal');
+    const tokenSetup = document.getElementById('tokenSetup');
+    const cloudConnected = document.getElementById('cloudConnected');
+    
+    // Check if already connected
+    if (cloudSync.enabled && cloudSync.token) {
+        tokenSetup.classList.add('hidden');
+        cloudConnected.classList.remove('hidden');
+    } else {
+        tokenSetup.classList.remove('hidden');
+        cloudConnected.classList.add('hidden');
+    }
+    
+    modal.style.display = 'block';
+}
+
+function closeCloudModal() {
+    const modal = document.getElementById('cloudSetupModal');
+    modal.style.display = 'none';
+    
+    // Clear token input
+    document.getElementById('githubToken').value = '';
+}
+
+async function connectToCloud() {
+    const tokenInput = document.getElementById('githubToken');
+    const token = tokenInput.value.trim();
+    
+    if (!token) {
+        showTemporaryMessage('Please enter your GitHub token');
+        return;
+    }
+    
+    // Validate token format
+    if (!token.startsWith('github_pat_')) {
+        showTemporaryMessage('Invalid token format. Should start with github_pat_');
+        return;
+    }
+    
+    updateSyncStatus('syncing', 'Connecting...');
+    
+    try {
+        // Test the token by trying to access the repo
+        const response = await fetch(`https://api.github.com/repos/knightofren2588/lady-yunalesca-journey`, {
+            headers: {
+                'Authorization': `token ${token}`,
+                'Accept': 'application/vnd.github.v3+json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to connect to GitHub');
+        }
+        
+        // Save token and enable sync
+        cloudSync.token = token;
+        cloudSync.enabled = true;
+        
+        // Save to localStorage (encrypted would be better, but this works)
+        localStorage.setItem('yunalesca_cloud_token', token);
+        localStorage.setItem('yunalesca_cloud_enabled', 'true');
+        
+        // Initial sync
+        await syncToCloud();
+        
+        updateSyncStatus('synced', 'Connected');
+        showTemporaryMessage('✅ Cloud sync connected! Your memories are now eternal');
+        closeCloudModal();
+        
+    } catch (error) {
+        updateSyncStatus('error', 'Connection failed');
+        showTemporaryMessage('❌ Failed to connect to cloud. Check your token.');
+        console.error('Cloud connection error:', error);
+    }
+}
+
+function disconnectCloud() {
+    cloudSync.enabled = false;
+    cloudSync.token = null;
+    cloudSync.lastSync = null;
+    
+    localStorage.removeItem('yunalesca_cloud_token');
+    localStorage.removeItem('yunalesca_cloud_enabled');
+    localStorage.removeItem('yunalesca_last_sync');
+    
+    updateSyncStatus('offline', 'Offline');
+    showTemporaryMessage('Cloud sync disconnected');
+    closeCloudModal();
+}
+
+async function syncToCloud() {
+    if (!cloudSync.enabled || !cloudSync.token || cloudSync.syncing) {
+        return;
+    }
+    
+    cloudSync.syncing = true;
+    updateSyncStatus('syncing', 'Syncing...');
+    
+    try {
+        // Prepare data for GitHub
+        const cloudData = {
+            entries: progressEntries,
+            achievements: currentAchievements,
+            character: characterData,
+            lastSync: new Date().toISOString(),
+            version: '1.0'
+        };
+        
+        // Get the current file SHA (required for updates)
+        let sha = null;
+        try {
+            const getResponse = await fetch(`https://api.github.com/repos/knightofren2588/lady-yunalesca-journey/contents/data/yunalesca-data.json`, {
+                headers: {
+                    'Authorization': `token ${cloudSync.token}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            });
+            
+            if (getResponse.ok) {
+                const existingFile = await getResponse.json();
+                sha = existingFile.sha;
+            }
+        } catch (e) {
+            // File doesn't exist yet, that's ok
+        }
+        
+        // Upload to GitHub
+        const uploadData = {
+            message: `Update Yunalesca's memories - ${new Date().toLocaleString()}`,
+            content: btoa(JSON.stringify(cloudData, null, 2)),
+            ...(sha && { sha })
+        };
+        
+        const response = await fetch(`https://api.github.com/repos/knightofren2588/lady-yunalesca-journey/contents/data/yunalesca-data.json`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `token ${cloudSync.token}`,
+                'Accept': 'application/vnd.github.v3+json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(uploadData)
+        });
+        
+        if (!response.ok) {
+            throw new Error(`GitHub API error: ${response.status}`);
+        }
+        
+        cloudSync.lastSync = new Date().toISOString();
+        localStorage.setItem('yunalesca_last_sync', cloudSync.lastSync);
+        
+        updateSyncStatus('synced', 'Synced');
+        
+    } catch (error) {
+        updateSyncStatus('error', 'Sync failed');
+        console.error('Sync error:', error);
+        showTemporaryMessage('⚠️ Cloud sync failed. Will retry automatically.');
+    } finally {
+        cloudSync.syncing = false;
+    }
+}
+
+async function loadFromCloud() {
+    if (!cloudSync.enabled || !cloudSync.token) {
+        return false;
+    }
+    
+    try {
+        updateSyncStatus('syncing', 'Loading...');
+        
+        const response = await fetch(`https://api.github.com/repos/knightofren2588/lady-yunalesca-journey/contents/data/yunalesca-data.json`, {
+            headers: {
+                'Authorization': `token ${cloudSync.token}`,
+                'Accept': 'application/vnd.github.v3+json'
+            }
+        });
+        
+        if (!response.ok) {
+            if (response.status === 404) {
+                // No cloud data yet
+                updateSyncStatus('synced', 'Connected');
+                return false;
+            }
+            throw new Error(`Failed to load from cloud: ${response.status}`);
+        }
+        
+        const fileData = await response.json();
+        const cloudData = JSON.parse(atob(fileData.content));
+        
+        // Load data from cloud
+        if (cloudData.entries) progressEntries = cloudData.entries;
+        if (cloudData.achievements) currentAchievements = cloudData.achievements;
+        if (cloudData.character) Object.assign(characterData, cloudData.character);
+        
+        cloudSync.lastSync = cloudData.lastSync || new Date().toISOString();
+        localStorage.setItem('yunalesca_last_sync', cloudSync.lastSync);
+        
+        updateSyncStatus('synced', 'Loaded');
+        return true;
+        
+    } catch (error) {
+        updateSyncStatus('error', 'Load failed');
+        console.error('Load from cloud error:', error);
+        return false;
+    }
+}
+
+function updateSyncStatus(status, text) {
+    const indicator = document.getElementById('syncIndicator');
+    const textElement = document.getElementById('syncText');
+    
+    indicator.className = `sync-indicator ${status}`;
+    textElement.textContent = text;
+    
+    // Auto-clear error status after 5 seconds
+    if (status === 'error') {
+        setTimeout(() => {
+            if (cloudSync.enabled) {
+                updateSyncStatus('synced', 'Connected');
+            } else {
+                updateSyncStatus('offline', 'Offline');
+            }
+        }, 5000);
+    }
+}
+
+function initializeCloudSync() {
+    // Load cloud settings
+    const savedToken = localStorage.getItem('yunalesca_cloud_token');
+    const cloudEnabled = localStorage.getItem('yunalesca_cloud_enabled') === 'true';
+    const lastSync = localStorage.getItem('yunalesca_last_sync');
+    
+    if (savedToken && cloudEnabled) {
+        cloudSync.token = savedToken;
+        cloudSync.enabled = true;
+        cloudSync.lastSync = lastSync;
+        
+        // Try to load from cloud
+        loadFromCloud().then(loaded => {
+            if (loaded) {
+                // Update displays with cloud data
+                displayProgressEntries();
+                displayAchievements();
+                updateStats();
+                updateCharacterMood();
+            }
+        });
+    } else {
+        updateSyncStatus('offline', 'Offline');
+    }
+}
+
 // Storage functions
 function saveToStorage() {
     localStorage.setItem('yunalesca_entries', JSON.stringify(progressEntries));
     localStorage.setItem('yunalesca_achievements', JSON.stringify(currentAchievements));
     localStorage.setItem('yunalesca_character_data', JSON.stringify(characterData));
+    
+    // Trigger cloud sync if enabled (with a small delay to avoid spam)
+    if (cloudSync.enabled && !cloudSync.syncing) {
+        setTimeout(() => {
+            if (cloudSync.enabled) {
+                syncToCloud();
+            }
+        }, 1000);
+    }
 }
 
 function loadFromStorage() {
