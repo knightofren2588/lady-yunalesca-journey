@@ -113,6 +113,12 @@ function initializeEventListeners() {
     document.getElementById('cancelCloudBtn').addEventListener('click', closeCloudModal);
     document.getElementById('connectCloudBtn').addEventListener('click', connectToCloud);
     document.getElementById('disconnectCloud').addEventListener('click', disconnectCloud);
+    document.getElementById('forceSyncBtn').addEventListener('click', forceSync);
+    
+    // Delete confirmation modal
+    document.getElementById('closeDeleteModal').addEventListener('click', closeDeleteModal);
+    document.getElementById('cancelDeleteBtn').addEventListener('click', closeDeleteModal);
+    document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDelete);
     
     // Form submission
     document.getElementById('entryForm').addEventListener('submit', handleFormSubmit);
@@ -167,6 +173,60 @@ function initializeEventListeners() {
             closeCloudModal();
         }
     });
+    
+    document.getElementById('deleteConfirmModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeDeleteModal();
+        }
+    });
+}
+
+// Delete functionality
+let entryToDelete = null;
+
+function openDeleteModal(entryId) {
+    const entry = progressEntries.find(e => e.id === entryId);
+    if (!entry) return;
+    
+    entryToDelete = entryId;
+    
+    // Show preview of what will be deleted
+    const deletePreview = document.getElementById('deletePreview');
+    const entryDate = new Date(entry.date).toLocaleDateString();
+    deletePreview.innerHTML = `
+        <strong>Date:</strong> ${entryDate}<br>
+        <strong>Zone:</strong> ${entry.zone}<br>
+        <strong>Type:</strong> ${entry.type}<br>
+        <strong>Description:</strong> ${entry.description.substring(0, 100)}${entry.description.length > 100 ? '...' : ''}
+    `;
+    
+    document.getElementById('deleteConfirmModal').style.display = 'block';
+}
+
+function closeDeleteModal() {
+    document.getElementById('deleteConfirmModal').style.display = 'none';
+    entryToDelete = null;
+}
+
+async function confirmDelete() {
+    if (!entryToDelete) return;
+    
+    // Remove from array
+    progressEntries = progressEntries.filter(entry => entry.id !== entryToDelete);
+    
+    // Save to localStorage
+    saveToStorage();
+    
+    // Update displays
+    displayProgressEntries();
+    updateStats();
+    updateCharacterMood();
+    
+    // Close modal
+    closeDeleteModal();
+    
+    // Show feedback
+    showTemporaryMessage('Memory deleted from the eternal record 💔');
 }
 
 // Portrait upload handling
@@ -501,6 +561,7 @@ function createProgressEntryElement(entry) {
     entryDiv.innerHTML = `
         <div class="progress-header">
             <div class="progress-date">${formattedDate}</div>
+            <button class="delete-btn" onclick="openDeleteModal('${entry.id}')" title="Delete this memory">🗑️</button>
         </div>
         
         <div class="progress-meta">
@@ -828,7 +889,7 @@ async function connectToCloud() {
         });
         
         if (!response.ok) {
-            throw new Error('Failed to connect to GitHub');
+            throw new Error('Failed to connect to GitHub - check your token permissions');
         }
         
         // Save token and enable sync
@@ -839,16 +900,30 @@ async function connectToCloud() {
         localStorage.setItem('yunalesca_cloud_token', token);
         localStorage.setItem('yunalesca_cloud_enabled', 'true');
         
-        // Initial sync
-        await syncToCloud();
+        // Try to load existing data from cloud first
+        updateSyncStatus('syncing', 'Loading from cloud...');
+        const dataLoaded = await loadFromCloud();
+        
+        if (dataLoaded) {
+            // Update displays with cloud data
+            displayProgressEntries();
+            displayAchievements();
+            updateStats();
+            updateCharacterMood();
+            showTemporaryMessage('✅ Cloud data loaded! Your memories are restored');
+        } else {
+            // No cloud data exists, upload current local data
+            updateSyncStatus('syncing', 'Uploading local data...');
+            await syncToCloud();
+            showTemporaryMessage('✅ Local data uploaded to cloud!');
+        }
         
         updateSyncStatus('synced', 'Connected');
-        showTemporaryMessage('✅ Cloud sync connected! Your memories are now eternal');
         closeCloudModal();
         
     } catch (error) {
         updateSyncStatus('error', 'Connection failed');
-        showTemporaryMessage('❌ Failed to connect to cloud. Check your token.');
+        showTemporaryMessage(`❌ Connection failed: ${error.message}`);
         console.error('Cloud connection error:', error);
     }
 }
@@ -865,6 +940,23 @@ function disconnectCloud() {
     updateSyncStatus('offline', 'Offline');
     showTemporaryMessage('Cloud sync disconnected');
     closeCloudModal();
+}
+
+async function forceSync() {
+    if (!cloudSync.enabled) {
+        showTemporaryMessage('Cloud sync not connected');
+        return;
+    }
+    
+    showTemporaryMessage('🔄 Force syncing to cloud...');
+    
+    try {
+        await syncToCloud();
+        showTemporaryMessage('✅ Force sync completed!');
+    } catch (error) {
+        showTemporaryMessage('❌ Force sync failed');
+        console.error('Force sync error:', error);
+    }
 }
 
 async function syncToCloud() {
@@ -956,6 +1048,7 @@ async function loadFromCloud() {
         if (!response.ok) {
             if (response.status === 404) {
                 // No cloud data yet
+                console.log('No cloud data found - this is the first sync');
                 updateSyncStatus('synced', 'Connected');
                 return false;
             }
@@ -965,13 +1058,27 @@ async function loadFromCloud() {
         const fileData = await response.json();
         const cloudData = JSON.parse(atob(fileData.content));
         
-        // Load data from cloud
-        if (cloudData.entries) progressEntries = cloudData.entries;
-        if (cloudData.achievements) currentAchievements = cloudData.achievements;
-        if (cloudData.character) Object.assign(characterData, cloudData.character);
+        console.log('Cloud data loaded:', cloudData);
+        
+        // Load data from cloud, replacing local data
+        if (cloudData.entries && Array.isArray(cloudData.entries)) {
+            progressEntries = cloudData.entries;
+            console.log(`Loaded ${progressEntries.length} entries from cloud`);
+        }
+        
+        if (cloudData.achievements && Array.isArray(cloudData.achievements)) {
+            currentAchievements = cloudData.achievements;
+        }
+        
+        if (cloudData.character && typeof cloudData.character === 'object') {
+            Object.assign(characterData, cloudData.character);
+        }
         
         cloudSync.lastSync = cloudData.lastSync || new Date().toISOString();
         localStorage.setItem('yunalesca_last_sync', cloudSync.lastSync);
+        
+        // Save the loaded data to local storage too
+        saveToStorage();
         
         updateSyncStatus('synced', 'Loaded');
         return true;
@@ -979,6 +1086,7 @@ async function loadFromCloud() {
     } catch (error) {
         updateSyncStatus('error', 'Load failed');
         console.error('Load from cloud error:', error);
+        showTemporaryMessage(`⚠️ Failed to load from cloud: ${error.message}`);
         return false;
     }
 }

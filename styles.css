@@ -453,6 +453,35 @@ body {
     box-shadow: 0 0 15px rgba(173, 216, 230, 0.2);
 }
 
+.btn-danger {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    border: 2px solid rgba(220, 53, 69, 0.5);
+    color: white;
+    padding: 12px 25px;
+    border-radius: 10px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: bold;
+}
+
+.btn-danger:hover {
+    background: linear-gradient(135deg, #c82333, #bd2130);
+    border-color: rgba(220, 53, 69, 0.8);
+    box-shadow: 0 0 15px rgba(220, 53, 69, 0.3);
+    transform: translateY(-1px);
+}
+
+.delete-preview {
+    background: rgba(45, 27, 78, 0.3);
+    border: 1px solid rgba(220, 53, 69, 0.3);
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 15px;
+    font-size: 0.9em;
+    color: #e6e6ff;
+}
+
 /* Cloud Sync Section */
 .cloud-sync-section {
     display: flex;
@@ -582,6 +611,26 @@ body {
     color: #add8e6;
     font-weight: bold;
     text-shadow: 0 0 8px rgba(173, 216, 230, 0.3);
+}
+
+.delete-btn {
+    background: rgba(220, 53, 69, 0.2);
+    border: 1px solid rgba(220, 53, 69, 0.4);
+    color: #ff6b6b;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 1.2em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    opacity: 0.7;
+}
+
+.delete-btn:hover {
+    background: rgba(220, 53, 69, 0.4);
+    border-color: rgba(220, 53, 69, 0.7);
+    opacity: 1;
+    transform: scale(1.1);
+    box-shadow: 0 0 10px rgba(220, 53, 69, 0.3);
 }
 
 .progress-meta {
@@ -1161,6 +1210,23 @@ body {
 .connected-info p {
     color: #e6e6ff;
     margin-bottom: 15px;
+}
+
+.cloud-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.cloud-actions .btn-primary {
+    padding: 10px 20px;
+    font-size: 0.9em;
+}
+
+.cloud-actions .btn-secondary {
+    padding: 10px 20px;
+    font-size: 0.9em;
 }
 
 .hidden {

@@ -89,6 +89,28 @@
         </div>
     </div>
 
+    <!-- Delete Confirmation Modal -->
+    <div class="modal" id="deleteConfirmModal">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h2>⚠️ Delete Memory</h2>
+                <button class="close-btn" id="closeDeleteModal">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <p>Are you sure you want to delete this memory? This action cannot be undone.</p>
+                <div class="delete-preview" id="deletePreview">
+                    <!-- Entry preview will be inserted here -->
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" id="cancelDeleteBtn">Cancel</button>
+                <button type="button" class="btn-danger" id="confirmDeleteBtn">Delete Forever</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Cloud Setup Modal -->
     <div class="modal" id="cloudSetupModal">
         <div class="modal-content">
@@ -122,7 +144,10 @@
                         <div class="connected-info">
                             <h4>✅ Cloud Sync Active</h4>
                             <p>Your memories are automatically syncing to GitHub!</p>
-                            <button class="btn-secondary" id="disconnectCloud">Disconnect</button>
+                            <div class="cloud-actions">
+                                <button class="btn-primary" id="forceSyncBtn" style="margin-right: 10px;">🔄 Force Sync</button>
+                                <button class="btn-secondary" id="disconnectCloud">Disconnect</button>
+                            </div>
                         </div>
                     </div>
                 </div>
