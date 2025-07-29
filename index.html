@@ -39,7 +39,7 @@
                 <div id="character-quote" class="character-quote">
                     "Click to hear Yunalesca's wisdom"
                 </div>
-                <div class="character-mood" onclick="cycleCharacterMood()" title="Click to change mood">
+                <div class="character-mood" onclick="updateCharacterMood()" title="Click to change mood">
                     Mood: <span id="character-mood">Contemplative</span>
                 </div>
             </div>
@@ -315,10 +315,34 @@
     <div id="cloud-setup-modal" class="cloud-setup-modal">
         <div class="cloud-setup-content">
             <h2>☁️ Cloud Sync Setup</h2>
-            <p>Connect your tracker to GitHub for unlimited storage and cross-device sync. Your memories will be preserved eternally in the cloud.</p>
-            <input type="text" id="github-token-input" placeholder="Enter your GitHub Personal Access Token">
+            
+            <div class="setup-instructions">
+                <h3>⚠️ GitHub Token Setup Required</h3>
+                <p>Your current token doesn't have the right permissions. Follow these steps:</p>
+                
+                <ol>
+                    <li><strong>Go to GitHub:</strong> <a href="https://github.com/settings/personal-access-tokens/new" target="_blank">Create New Token</a></li>
+                    <li><strong>Token Type:</strong> Select "Fine-grained tokens"</li>
+                    <li><strong>Repository:</strong> Select "lady-yunalesca-journey"</li>
+                    <li><strong>Permissions:</strong> Enable:
+                        <ul>
+                            <li>✅ Contents: <strong>Read and write</strong></li>
+                            <li>✅ Metadata: <strong>Read</strong></li>
+                            <li>✅ Pull requests: <strong>Write</strong> (optional)</li>
+                        </ul>
+                    </li>
+                    <li><strong>Generate & Copy</strong> the token</li>
+                </ol>
+                
+                <div class="fallback-notice">
+                    <p>💡 <strong>Don't want cloud sync?</strong> That's okay! Your tracker works perfectly without it. Your data is saved locally in your browser.</p>
+                </div>
+            </div>
+            
+            <input type="text" id="github-token-input" placeholder="Paste your GitHub Personal Access Token here">
+            
             <div class="cloud-setup-buttons">
-                <button class="secondary-btn" onclick="closeCloudSetup()">Cancel</button>
+                <button class="secondary-btn" onclick="skipCloudSetup()">Skip Cloud Sync</button>
                 <button class="primary-btn" onclick="connectToCloud()">Connect to Cloud</button>
             </div>
         </div>

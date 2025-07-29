@@ -382,6 +382,109 @@ function saveEntry(entry) {
     showNotification('✨ Memory crystallized in the eternal archive');
 }
 
+function editEntry(entryId) {
+    const entry = yunalescaEntries.find(e => e.id === entryId);
+    if (!entry) return;
+    
+    // Create edit modal
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+        <div class="edit-modal">
+            <h3>✏️ Edit Memory</h3>
+            <form id="edit-entry-form">
+                <div class="form-group">
+                    <label for="edit-date">Date</label>
+                    <input type="date" id="edit-date" name="date" value="${entry.date}" required>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="edit-level">Level</label>
+                        <input type="number" id="edit-level" name="level" value="${entry.level}" min="1" max="80" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-realm">Realm</label>
+                        <input type="text" id="edit-realm" name="realm" value="${entry.realm}" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="edit-type">Type</label>
+                        <select id="edit-type" name="type" required>
+                            <option value="Questing" ${entry.type === 'Questing' ? 'selected' : ''}>Questing</option>
+                            <option value="Dungeon" ${entry.type === 'Dungeon' ? 'selected' : ''}>Dungeon</option>
+                            <option value="Raid" ${entry.type === 'Raid' ? 'selected' : ''}>Raid</option>
+                            <option value="PvP" ${entry.type === 'PvP' ? 'selected' : ''}>PvP</option>
+                            <option value="Exploration" ${entry.type === 'Exploration' ? 'selected' : ''}>Exploration</option>
+                            <option value="Social" ${entry.type === 'Social' ? 'selected' : ''}>Social</option>
+                            <option value="Achievement" ${entry.type === 'Achievement' ? 'selected' : ''}>Achievement</option>
+                            <option value="Crafting" ${entry.type === 'Crafting' ? 'selected' : ''}>Crafting</option>
+                            <option value="Event" ${entry.type === 'Event' ? 'selected' : ''}>Event</option>
+                            <option value="Milestone" ${entry.type === 'Milestone' ? 'selected' : ''}>Milestone</option>
+                            <option value="Story" ${entry.type === 'Story' ? 'selected' : ''}>Story</option>
+                            <option value="Other" ${entry.type === 'Other' ? 'selected' : ''}>Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-shadow-arts">Shadow Arts</label>
+                        <select id="edit-shadow-arts" name="shadow-arts" required>
+                            <option value="Shadow" ${entry.shadowArts === 'Shadow' ? 'selected' : ''}>Shadow</option>
+                            <option value="Discipline" ${entry.shadowArts === 'Discipline' ? 'selected' : ''}>Discipline</option>
+                            <option value="Holy" ${entry.shadowArts === 'Holy' ? 'selected' : ''}>Holy</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit-description">Description</label>
+                    <textarea id="edit-description" name="description" required>${entry.description}</textarea>
+                </div>
+                
+                <div class="modal-buttons">
+                    <button type="button" class="cancel-btn" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
+                    <button type="submit" class="save-btn">💾 Save Changes</button>
+                </div>
+            </form>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Handle form submission
+    document.getElementById('edit-entry-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        
+        // Update entry
+        entry.date = formData.get('date');
+        entry.level = parseInt(formData.get('level'));
+        entry.realm = formData.get('realm');
+        entry.type = formData.get('type');
+        entry.shadowArts = formData.get('shadow-arts');
+        entry.description = formData.get('description');
+        entry.timestamp = new Date().toISOString(); // Update timestamp
+        
+        // Save to localStorage
+        localStorage.setItem('yunalesca_entries', JSON.stringify(yunalescaEntries));
+        
+        // Update display
+        displayEntries();
+        updateAchievements();
+        
+        // Sync to cloud
+        if (isCloudEnabled) {
+            syncToCloud();
+        }
+        
+        // Remove modal
+        modal.remove();
+        
+        showNotification('✨ Memory updated in the eternal archive');
+    });
+}
+
 function deleteEntry(entryId) {
     const entryIndex = yunalescaEntries.findIndex(entry => entry.id === entryId);
     if (entryIndex === -1) return;
@@ -443,9 +546,14 @@ function displayEntries() {
                     <span class="entry-type">${entry.type}</span>
                     <span class="entry-level">Level ${entry.level}</span>
                 </div>
-                <button class="delete-entry-btn" onclick="deleteEntry(${entry.id})" title="Delete this memory">
-                    🗑️
-                </button>
+                <div class="entry-actions">
+                    <button class="edit-entry-btn" onclick="editEntry(${entry.id})" title="Edit this memory">
+                        ✏️
+                    </button>
+                    <button class="delete-entry-btn" onclick="deleteEntry(${entry.id})" title="Delete this memory">
+                        🗑️
+                    </button>
+                </div>
             </div>
             <div class="entry-content">
                 <p class="entry-description">${entry.description}</p>
@@ -669,6 +777,15 @@ function closeCloudSetup() {
     document.getElementById('cloud-setup-modal').style.display = 'none';
 }
 
+function skipCloudSetup() {
+    closeCloudSetup();
+    showNotification('📱 Using local storage only - your data is safe in your browser!');
+    
+    // Update the button to show local mode
+    document.getElementById('cloud-sync-btn').innerHTML = '💾 Local Storage';
+    document.getElementById('cloud-sync-btn').title = 'Click to set up cloud sync';
+}
+
 async function connectToCloud() {
     const tokenInput = document.getElementById('github-token-input');
     const newToken = tokenInput.value.trim();
@@ -681,33 +798,46 @@ async function connectToCloud() {
     githubToken = newToken;
     localStorage.setItem('yunalesca_github_token', githubToken);
     
-    updateSyncStatus('🔄 Connecting...', false);
+    updateSyncStatus('🔄 Testing connection...', false);
     
-    // Test connection first
-    await testCloudConnection();
-    
-    // Force load from cloud - this should fix cross-browser sync
-    console.log('🔄 Force loading from cloud...');
-    const hasCloudData = await loadFromCloud();
-    
-    if (hasCloudData) {
-        console.log('✅ Loaded existing data from cloud');
-        updateSyncStatus('✅ Data loaded from cloud', false);
-    } else {
-        console.log('📤 No cloud data found, uploading current data...');
-        // No cloud data exists, upload current local data
-        await syncToCloud();
-        updateSyncStatus('✅ Local data uploaded to cloud', false);
+    try {
+        // Test connection first
+        const testResult = await testCloudConnection();
+        
+        if (!testResult) {
+            // Connection failed, show instructions
+            updateSyncStatus('❌ Connection failed - check token permissions', true);
+            showNotification('❌ Cloud sync failed. Check the setup instructions in the modal.');
+            return;
+        }
+        
+        console.log('🔄 Connection successful, loading data...');
+        
+        // Try to load existing data
+        const hasCloudData = await loadFromCloud();
+        
+        if (hasCloudData) {
+            console.log('✅ Loaded existing data from cloud');
+            updateSyncStatus('✅ Data loaded from cloud', false);
+        } else {
+            console.log('📤 No cloud data found, uploading current data...');
+            await syncToCloud();
+            updateSyncStatus('✅ Local data uploaded to cloud', false);
+        }
+        
+        // Enable cloud sync
+        isCloudEnabled = true;
+        document.getElementById('cloud-sync-btn').innerHTML = '☁️ Connected';
+        document.getElementById('cloud-sync-btn').classList.add('connected');
+        
+        closeCloudSetup();
+        showNotification('☁️ Cloud sync connected! Data synced across all devices.');
+        
+    } catch (error) {
+        console.error('❌ Cloud setup failed:', error);
+        updateSyncStatus('❌ Setup failed', true);
+        showNotification('❌ Cloud setup failed. You can still use local storage!');
     }
-    
-    // Enable cloud sync
-    isCloudEnabled = true;
-    document.getElementById('cloud-sync-btn').innerHTML = '☁️ Connected';
-    document.getElementById('cloud-sync-btn').classList.add('connected');
-    
-    closeCloudSetup();
-    
-    showNotification('☁️ Cloud sync connected! Data synced across all devices.');
 }
 
 function forceSync() {
@@ -823,6 +953,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (menu.parentElement) menu.remove();
             }, 5000);
         } else {
+            // Not connected to cloud, show setup
             setupCloudSync();
         }
     });
@@ -839,18 +970,20 @@ document.addEventListener('DOMContentLoaded', function() {
     // Character interactions
     document.getElementById('character-portrait').addEventListener('click', uploadPortrait);
     document.getElementById('character-quote').addEventListener('click', updateCharacterQuote);
-    document.querySelector('.character-mood').addEventListener('click', cycleCharacterMood);
+    document.querySelector('.character-mood').addEventListener('click', updateCharacterMood);
 });
 
 // Make functions globally accessible
 window.deleteEntry = deleteEntry;
+window.editEntry = editEntry;
 window.confirmDelete = confirmDelete;
 window.viewFullImage = viewFullImage;
 window.setupCloudSync = setupCloudSync;
 window.closeCloudSetup = closeCloudSetup;
+window.skipCloudSetup = skipCloudSetup;
 window.connectToCloud = connectToCloud;
 window.forceSync = forceSync;
 window.testCloudConnection = testCloudConnection;
 window.uploadPortrait = uploadPortrait;
 window.updateCharacterQuote = updateCharacterQuote;
-window.cycleCharacterMood = cycleCharacterMood;
+window.updateCharacterMood = updateCharacterMood;
