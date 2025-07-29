@@ -39,7 +39,7 @@
                 <div id="character-quote" class="character-quote">
                     "Click to hear Yunalesca's wisdom"
                 </div>
-                <div class="character-mood">
+                <div class="character-mood" onclick="cycleCharacterMood()" title="Click to change mood">
                     Mood: <span id="character-mood">Contemplative</span>
                 </div>
             </div>
@@ -294,19 +294,19 @@
             </div>
         </section>
 
+        <!-- Achievements Section - MOVED ABOVE ENTRIES -->
+        <section class="achievements-section">
+            <div class="form-card">
+                <h2>🏆 Achievements of Transcendence</h2>
+                <div id="achievements-list" class="achievements-list"></div>
+            </div>
+        </section>
+
         <!-- Entries Display -->
         <section class="entries-section">
             <div class="form-card">
                 <h2>📚 Eternal Chronicles</h2>
                 <div id="entries-list"></div>
-            </div>
-        </section>
-
-        <!-- Achievements Section -->
-        <section class="achievements-section">
-            <div class="form-card">
-                <h2>🏆 Achievements of Transcendence</h2>
-                <div id="achievements-list" class="achievements-list"></div>
             </div>
         </section>
     </div>

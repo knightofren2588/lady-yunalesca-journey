@@ -30,7 +30,14 @@ const achievements = [
     { id: 'legendary_scribe', name: 'Fayth\'s Echo', description: 'Transcribe 5000 words of your journey', requirement: 'words', value: 5000, icon: '📚' }
 ];
 
-// Character quotes
+// Character mood options
+const characterMoods = [
+    'Contemplative', 'Transcendent', 'Empowered', 'Awakened', 
+    'Focused', 'Curious', 'Ethereal', 'Mystical', 'Eternal',
+    'Melancholic', 'Determined', 'Wise', 'Ancient', 'Otherworldly'
+];
+
+let currentMoodIndex = 0;
 const yunalescaQuotes = [
     "Death is not to be feared, but embraced as the final aeon of one's journey.",
     "In Azeroth, as in Spira, the eternal spiral of life and death continues.",
@@ -177,6 +184,7 @@ async function loadFromCloud() {
 
     try {
         updateSyncStatus('🔄 Loading from cloud...', false);
+        console.log('🔍 Attempting to load data from GitHub...');
         
         const response = await fetch('https://api.github.com/repos/knightofren2588/lady-yunalesca-journey/contents/data/yunalesca-data.json', {
             headers: {
@@ -185,41 +193,54 @@ async function loadFromCloud() {
             }
         });
 
+        console.log('📡 GitHub API Response Status:', response.status);
+
         if (response.ok) {
             const fileData = await response.json();
+            console.log('📄 File data received from GitHub');
+            
             const decodedContent = base64ToUnicode(fileData.content);
             const cloudData = JSON.parse(decodedContent);
+            console.log('📦 Cloud data parsed:', {
+                entries: cloudData.entries?.length || 0,
+                achievements: cloudData.achievements?.length || 0,
+                hasCharacterData: !!cloudData.character,
+                hasPortrait: !!cloudData.portrait
+            });
 
+            // Load cloud data and overwrite local
             yunalescaEntries = cloudData.entries || [];
             yunalescaAchievements = cloudData.achievements || [];
             yunalescaCharacterData = cloudData.character || {};
             currentPortrait = cloudData.portrait || '';
 
+            // Save to local storage
             localStorage.setItem('yunalesca_entries', JSON.stringify(yunalescaEntries));
             localStorage.setItem('yunalesca_achievements', JSON.stringify(yunalescaAchievements));
             localStorage.setItem('yunalesca_character_data', JSON.stringify(yunalescaCharacterData));
             localStorage.setItem('yunalesca_portrait', currentPortrait);
 
             updateSyncStatus('✅ Loaded from cloud', false);
-            console.log('✅ Successfully loaded from cloud');
+            console.log('✅ Successfully loaded and saved cloud data locally');
             
+            // Refresh the display
             displayEntries();
             updateAchievements();
             updateCharacterDisplay();
             
             return true;
         } else if (response.status === 404) {
-            console.log('No cloud data found - this is normal for first time setup');
+            console.log('📂 No cloud data found - this is normal for first time setup');
             updateSyncStatus('✅ Connected (no cloud data yet)', false);
             return false;
         } else {
             const errorText = await response.text();
-            console.error('Failed to load from cloud:', response.status, errorText);
+            console.error('❌ Failed to load from cloud:', response.status, errorText);
             updateSyncStatus('❌ Failed to load from cloud', true);
             return false;
         }
     } catch (error) {
-        console.error('Error loading from cloud:', error);
+        console.error('💥 Error loading from cloud:', error);
         updateSyncStatus('❌ Error loading from cloud', true);
         return false;
     }
@@ -616,16 +637,20 @@ function updateCharacterQuote() {
 }
 
 function updateCharacterMood() {
-    const stats = calculateStats();
-    let mood = 'Contemplative';
+    currentMoodIndex = (currentMoodIndex + 1) % characterMoods.length;
+    const newMood = characterMoods[currentMoodIndex];
+    document.getElementById('character-mood').textContent = newMood;
     
-    if (stats.maxLevel >= 60) mood = 'Transcendent';
-    else if (stats.maxLevel >= 40) mood = 'Empowered';
-    else if (stats.maxLevel >= 20) mood = 'Awakened';
-    else if (stats.totalEntries >= 10) mood = 'Focused';
-    else if (stats.totalEntries >= 5) mood = 'Curious';
+    // Save mood to character data
+    yunalescaCharacterData.mood = newMood;
+    yunalescaCharacterData.moodIndex = currentMoodIndex;
+    localStorage.setItem('yunalesca_character_data', JSON.stringify(yunalescaCharacterData));
     
-    document.getElementById('character-mood').textContent = mood;
+    if (isCloudEnabled) {
+        syncToCloud();
+    }
+    
+    showNotification(`💫 Mood changed to ${newMood}`);
 }
 
 // Cloud setup functions
@@ -656,19 +681,33 @@ async function connectToCloud() {
     githubToken = newToken;
     localStorage.setItem('yunalesca_github_token', githubToken);
     
+    updateSyncStatus('🔄 Connecting...', false);
+    
+    // Test connection first
     await testCloudConnection();
     
+    // Force load from cloud - this should fix cross-browser sync
+    console.log('🔄 Force loading from cloud...');
     const hasCloudData = await loadFromCloud();
     
-    if (!hasCloudData) {
+    if (hasCloudData) {
+        console.log('✅ Loaded existing data from cloud');
+        updateSyncStatus('✅ Data loaded from cloud', false);
+    } else {
+        console.log('📤 No cloud data found, uploading current data...');
+        // No cloud data exists, upload current local data
         await syncToCloud();
+        updateSyncStatus('✅ Local data uploaded to cloud', false);
     }
     
+    // Enable cloud sync
     isCloudEnabled = true;
     document.getElementById('cloud-sync-btn').innerHTML = '☁️ Connected';
     document.getElementById('cloud-sync-btn').classList.add('connected');
     
     closeCloudSetup();
+    
+    showNotification('☁️ Cloud sync connected! Data synced across all devices.');
 }
 
 function forceSync() {
@@ -800,6 +839,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Character interactions
     document.getElementById('character-portrait').addEventListener('click', uploadPortrait);
     document.getElementById('character-quote').addEventListener('click', updateCharacterQuote);
+    document.querySelector('.character-mood').addEventListener('click', cycleCharacterMood);
 });
 
 // Make functions globally accessible
@@ -811,3 +851,6 @@ window.closeCloudSetup = closeCloudSetup;
 window.connectToCloud = connectToCloud;
 window.forceSync = forceSync;
 window.testCloudConnection = testCloudConnection;
+window.uploadPortrait = uploadPortrait;
+window.updateCharacterQuote = updateCharacterQuote;
+window.cycleCharacterMood = cycleCharacterMood;
