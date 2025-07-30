@@ -1,4 +1,4 @@
-// Lady Yunalesca's Complete Tracker - Full Script
+// Lady Yunalesca's Complete Enhanced Tracker - Full Script
 let yunalescaEntries = JSON.parse(localStorage.getItem('yunalesca_entries') || '[]');
 let yunalescaAchievements = JSON.parse(localStorage.getItem('yunalesca_achievements') || '[]');
 let yunalescaCharacterData = JSON.parse(localStorage.getItem('yunalesca_character_data') || '{}');
@@ -50,6 +50,54 @@ const yunalescaQuotes = [
     "The spiral of death that plagued Spira finds new form in this realm.",
     "Between worlds I walk, carrying wisdom from both Spira and Azeroth."
 ];
+
+// ENHANCED ENTRY FORMATTING FUNCTIONS - NEW
+function formatEntryDescription(description) {
+    if (!description) return '';
+    
+    // Split long descriptions into paragraphs at sentence endings
+    let formatted = description.replace(/\. ([A-Z])/g, '.\n\n$1');
+    
+    // Add line breaks before special phrases for better flow
+    formatted = formatted.replace(/(The |Standing |Looking |Tomorrow |Perhaps |Level \d+,)/g, '\n\n$1');
+    
+    // Clean up extra line breaks
+    formatted = formatted.replace(/\n\n\n+/g, '\n\n');
+    formatted = formatted.trim();
+    
+    return formatted;
+}
+
+function extractFeelingsFromDescription(description) {
+    // Look for emotional or reflective content to separate into notes
+    const feelingIndicators = [
+        /\*([^*]+)\*/g, // Text in asterisks
+        /(Level \d+, but already sensing[^.]+\.)/g, // Reflective endings
+        /(Perhaps this is where[^.]+\.)/g, // Contemplative phrases
+        /(The peaceful [^.]+reminds me[^.]+\.)/g, // Memory connections
+    ];
+    
+    let feelings = [];
+    let cleanDescription = description;
+    
+    feelingIndicators.forEach(regex => {
+        let matches = description.match(regex);
+        if (matches) {
+            matches.forEach(match => {
+                feelings.push(match.replace(/\*/g, '')); // Remove asterisks
+                cleanDescription = cleanDescription.replace(match, '').trim();
+            });
+        }
+    });
+    
+    // Clean up extra spaces and line breaks
+    cleanDescription = cleanDescription.replace(/\s+/g, ' ').trim();
+    
+    return {
+        description: cleanDescription,
+        feelings: feelings.length > 0 ? feelings.join(' ') : null
+    };
+}
 
 // Unicode-safe base64 encoding
 function unicodeToBase64(str) {
@@ -524,6 +572,7 @@ function confirmDelete(entryId) {
     showNotification('💔 Memory dissolved from the eternal archive');
 }
 
+// ENHANCED DISPLAY ENTRIES FUNCTION WITH BETTER FORMATTING
 function displayEntries() {
     const entriesContainer = document.getElementById('entries-list');
     
@@ -538,39 +587,46 @@ function displayEntries() {
         return;
     }
 
-    entriesContainer.innerHTML = yunalescaEntries.map(entry => `
-        <div class="entry-card" data-level="${entry.level}" data-entry-id="${entry.id}">
-            <div class="entry-header">
-                <div class="entry-meta">
-                    <span class="entry-date">${formatDate(entry.date)}</span>
-                    <span class="entry-realm">${entry.realm}</span>
-                    <span class="entry-type">${entry.type}</span>
-                    <span class="entry-level">Level ${entry.level}</span>
-                </div>
-                <div class="entry-actions">
-                    <button class="edit-entry-btn" data-entry-id="${entry.id}" title="Edit this memory">
-                        ✏️
-                    </button>
-                    <button class="delete-entry-btn" data-entry-id="${entry.id}" title="Delete this memory">
-                        🗑️
-                    </button>
-                </div>
-            </div>
-            <div class="entry-content">
-                <p class="entry-description">${entry.description}</p>
-                ${entry.screenshot ? `
-                    <div class="entry-screenshot">
-                        <img src="${entry.screenshot}" alt="Memory Crystal" class="screenshot-img" data-src="${entry.screenshot}">
-                        <div class="screenshot-overlay">📸 Memory Crystal</div>
+    entriesContainer.innerHTML = yunalescaEntries.map(entry => {
+        // Use enhanced formatting functions
+        const { description, feelings } = extractFeelingsFromDescription(entry.description || '');
+        const formattedDescription = formatEntryDescription(description);
+        
+        return `
+            <div class="entry-card" data-level="${entry.level}" data-entry-id="${entry.id}">
+                <div class="entry-header">
+                    <div class="entry-meta">
+                        <span class="entry-date">${formatDate(entry.date)}</span>
+                        <span class="entry-realm">${entry.realm}</span>
+                        <span class="entry-type">${entry.type}</span>
+                        <span class="entry-level">Level ${entry.level}</span>
                     </div>
-                ` : ''}
+                    <div class="entry-actions">
+                        <button class="edit-entry-btn" data-entry-id="${entry.id}" title="Edit this memory">
+                            ✏️
+                        </button>
+                        <button class="delete-entry-btn" data-entry-id="${entry.id}" title="Delete this memory">
+                            🗑️
+                        </button>
+                    </div>
+                </div>
+                <div class="entry-content">
+                    <div class="entry-description">${formattedDescription}</div>
+                    ${feelings ? `<div class="entry-notes">${feelings}</div>` : ''}
+                    ${entry.screenshot ? `
+                        <div class="entry-screenshot">
+                            <img src="${entry.screenshot}" alt="Memory Crystal" class="screenshot-img" data-src="${entry.screenshot}">
+                            <div class="screenshot-overlay">📸 Memory Crystal</div>
+                        </div>
+                    ` : ''}
+                </div>
+                <div class="entry-footer">
+                    <span class="shadow-arts">Shadow Arts: ${entry.shadowArts}</span>
+                    <span class="entry-timestamp">${formatTimestamp(entry.timestamp)}</span>
+                </div>
             </div>
-            <div class="entry-footer">
-                <span class="shadow-arts">Shadow Arts: ${entry.shadowArts}</span>
-                <span class="entry-timestamp">${formatTimestamp(entry.timestamp)}</span>
-            </div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
     
     // Add event listeners after rendering
     addEntryEventListeners();
