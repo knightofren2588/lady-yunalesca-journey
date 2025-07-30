@@ -80,8 +80,9 @@ function updateSyncStatus(message, isError = false) {
     if (statusElement) {
         statusElement.textContent = message;
         statusElement.className = `sync-status ${isError ? 'error' : 'success'}`;
+        statusElement.style.display = 'inline-block'; // Make sure it's visible
         
-        if (!isError) {
+        if (!isError && message.includes('Connected')) {
             setTimeout(() => {
                 statusElement.textContent = 'Connected';
                 statusElement.className = 'sync-status success';
@@ -538,7 +539,7 @@ function displayEntries() {
     }
 
     entriesContainer.innerHTML = yunalescaEntries.map(entry => `
-        <div class="entry-card" data-level="${entry.level}">
+        <div class="entry-card" data-level="${entry.level}" data-entry-id="${entry.id}">
             <div class="entry-header">
                 <div class="entry-meta">
                     <span class="entry-date">${formatDate(entry.date)}</span>
@@ -547,10 +548,10 @@ function displayEntries() {
                     <span class="entry-level">Level ${entry.level}</span>
                 </div>
                 <div class="entry-actions">
-                    <button class="edit-entry-btn" onclick="editEntry(${entry.id})" title="Edit this memory">
+                    <button class="edit-entry-btn" data-entry-id="${entry.id}" title="Edit this memory">
                         ✏️
                     </button>
-                    <button class="delete-entry-btn" onclick="deleteEntry(${entry.id})" title="Delete this memory">
+                    <button class="delete-entry-btn" data-entry-id="${entry.id}" title="Delete this memory">
                         🗑️
                     </button>
                 </div>
@@ -559,7 +560,7 @@ function displayEntries() {
                 <p class="entry-description">${entry.description}</p>
                 ${entry.screenshot ? `
                     <div class="entry-screenshot">
-                        <img src="${entry.screenshot}" alt="Memory Crystal" onclick="viewFullImage('${entry.screenshot}')">
+                        <img src="${entry.screenshot}" alt="Memory Crystal" class="screenshot-img" data-src="${entry.screenshot}">
                         <div class="screenshot-overlay">📸 Memory Crystal</div>
                     </div>
                 ` : ''}
@@ -570,6 +571,41 @@ function displayEntries() {
             </div>
         </div>
     `).join('');
+    
+    // Add event listeners after rendering
+    addEntryEventListeners();
+}
+
+function addEntryEventListeners() {
+    // Edit button listeners
+    document.querySelectorAll('.edit-entry-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const entryId = parseInt(this.getAttribute('data-entry-id'));
+            editEntry(entryId);
+        });
+    });
+    
+    // Delete button listeners  
+    document.querySelectorAll('.delete-entry-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const entryId = parseInt(this.getAttribute('data-entry-id'));
+            deleteEntry(entryId);
+        });
+    });
+    
+    // Screenshot click listeners
+    document.querySelectorAll('.screenshot-img').forEach(img => {
+        img.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const src = this.getAttribute('data-src');
+            viewFullImage(src);
+        });
+    });
 }
 
 // Achievement system
@@ -777,6 +813,26 @@ function closeCloudSetup() {
     document.getElementById('cloud-setup-modal').style.display = 'none';
 }
 
+function disconnectCloud() {
+    // Clear cloud sync data
+    isCloudEnabled = false;
+    githubToken = '';
+    localStorage.removeItem('yunalesca_github_token');
+    
+    // Update UI
+    document.getElementById('cloud-sync-btn').innerHTML = '💾 Local Storage';
+    document.getElementById('cloud-sync-btn').classList.remove('connected');
+    document.getElementById('cloud-sync-btn').title = 'Click to set up cloud sync';
+    
+    // Hide sync status
+    const syncStatus = document.getElementById('sync-status');
+    if (syncStatus) {
+        syncStatus.style.display = 'none';
+    }
+    
+    showNotification('🔌 Disconnected from cloud - using local storage only');
+}
+
 function skipCloudSetup() {
     closeCloudSetup();
     showNotification('📱 Using local storage only - your data is safe in your browser!');
@@ -857,7 +913,20 @@ function initializeCloudSync() {
         document.getElementById('cloud-sync-btn').innerHTML = '☁️ Connected';
         document.getElementById('cloud-sync-btn').classList.add('connected');
         
+        // Show sync status
+        const syncStatus = document.getElementById('sync-status');
+        if (syncStatus) {
+            syncStatus.style.display = 'inline-block';
+            syncStatus.textContent = 'Connected';
+            syncStatus.className = 'sync-status success';
+        }
+        
+        // Try to load from cloud on startup
         loadFromCloud();
+    } else {
+        // No token, show local storage mode
+        document.getElementById('cloud-sync-btn').innerHTML = '💾 Local Storage';
+        document.getElementById('cloud-sync-btn').title = 'Click to set up cloud sync';
     }
 }
 
@@ -937,7 +1006,17 @@ document.addEventListener('DOMContentLoaded', function() {
     updateCharacterDisplay();
     
     // Cloud sync button handler
-    document.getElementById('cloud-sync-btn').addEventListener('click', function() {
+    document.getElementById('cloud-sync-btn').addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Remove any existing menu first
+        const existingMenu = this.querySelector('.cloud-menu');
+        if (existingMenu) {
+            existingMenu.remove();
+            return;
+        }
+        
         if (isCloudEnabled) {
             const menu = document.createElement('div');
             menu.className = 'cloud-menu';
@@ -945,13 +1024,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 <button onclick="forceSync(); this.parentElement.remove();">🔄 Force Sync</button>
                 <button onclick="testCloudConnection(); this.parentElement.remove();">🧪 Test Connection</button>
                 <button onclick="setupCloudSync(); this.parentElement.remove();">⚙️ Settings</button>
+                <button onclick="disconnectCloud(); this.parentElement.remove();">🔌 Disconnect</button>
             `;
             
             this.appendChild(menu);
             
+            // Remove menu when clicking outside
             setTimeout(() => {
-                if (menu.parentElement) menu.remove();
-            }, 5000);
+                document.addEventListener('click', function closeMenu(e) {
+                    if (!menu.contains(e.target) && !e.target.closest('#cloud-sync-btn')) {
+                        menu.remove();
+                        document.removeEventListener('click', closeMenu);
+                    }
+                });
+            }, 100);
+            
         } else {
             // Not connected to cloud, show setup
             setupCloudSync();
@@ -981,9 +1068,11 @@ window.viewFullImage = viewFullImage;
 window.setupCloudSync = setupCloudSync;
 window.closeCloudSetup = closeCloudSetup;
 window.skipCloudSetup = skipCloudSetup;
+window.disconnectCloud = disconnectCloud;
 window.connectToCloud = connectToCloud;
 window.forceSync = forceSync;
 window.testCloudConnection = testCloudConnection;
 window.uploadPortrait = uploadPortrait;
 window.updateCharacterQuote = updateCharacterQuote;
 window.updateCharacterMood = updateCharacterMood;
+window.addEntryEventListeners = addEntryEventListeners;

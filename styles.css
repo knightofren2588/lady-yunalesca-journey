@@ -279,6 +279,10 @@ body::before {
     border-color: rgba(6, 182, 212, 0.3);
 }
 
+.cloud-sync-btn.connected:hover {
+    background: linear-gradient(45deg, #0d9488, #0f766e);
+}
+
 .sync-status {
     font-size: 0.9rem;
     padding: 8px 16px;
@@ -286,50 +290,74 @@ body::before {
     display: inline-block;
     margin: 10px;
     transition: all 0.3s ease;
+    min-width: 100px;
+    text-align: center;
 }
 
 .sync-status.success {
     background: rgba(6, 182, 212, 0.2);
     color: #67e8f9;
     border: 1px solid rgba(6, 182, 212, 0.3);
+    box-shadow: 0 0 10px rgba(6, 182, 212, 0.2);
 }
 
 .sync-status.error {
     background: rgba(239, 68, 68, 0.2);
     color: #fca5a5;
     border: 1px solid rgba(239, 68, 68, 0.3);
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
 }
 
-/* Cloud Menu - Clean */
+/* Cloud Menu - Enhanced and More Visible */
 .cloud-menu {
     position: absolute;
     top: 100%;
-    left: 0;
-    background: rgba(30, 27, 75, 0.95);
-    border: 1px solid rgba(139, 69, 255, 0.3);
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(30, 27, 75, 0.98);
+    border: 1px solid rgba(139, 69, 255, 0.4);
     border-radius: 10px;
-    padding: 10px;
+    padding: 12px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    min-width: 150px;
+    gap: 10px;
+    min-width: 180px;
     z-index: 1000;
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(15px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    animation: menuSlideIn 0.2s ease-out;
+}
+
+@keyframes menuSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
 }
 
 .cloud-menu button {
-    background: transparent;
-    border: 1px solid rgba(139, 69, 255, 0.2);
+    background: rgba(139, 69, 255, 0.1);
+    border: 1px solid rgba(139, 69, 255, 0.3);
     color: #e0e7ff;
-    padding: 8px 12px;
-    border-radius: 5px;
+    padding: 10px 15px;
+    border-radius: 8px;
     cursor: pointer;
     transition: all 0.3s ease;
     font-size: 0.9rem;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .cloud-menu button:hover {
-    background: rgba(139, 69, 255, 0.2);
+    background: rgba(139, 69, 255, 0.3);
+    border-color: rgba(139, 69, 255, 0.5);
+    transform: translateX(5px);
 }
 
 /* Enhanced Form Animations and Interactions */
