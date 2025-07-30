@@ -1,4 +1,4 @@
-/* Lady Yunalesca's Complete Enhanced Styling */
+/* Lady Yunalesca's Complete Enhanced Styling with Titles & Filters */
 
 * {
     margin: 0;
@@ -492,10 +492,103 @@ body::before {
     box-shadow: 0 10px 30px rgba(139, 69, 255, 0.4);
 }
 
-/* ENTRIES GRID LAYOUT - 2-3 PER ROW AS REQUESTED */
+/* FILTER CONTROLS - NEW */
+.filter-controls {
+    background: rgba(30, 27, 75, 0.6);
+    border: 1px solid rgba(139, 69, 255, 0.2);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 30px;
+    backdrop-filter: blur(10px);
+}
+
+.filter-controls h3 {
+    color: #a78bfa;
+    margin-bottom: 20px;
+    text-align: center;
+    font-size: 1.4rem;
+}
+
+.filter-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.filter-group label {
+    color: #c4b5fd;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.filter-group select,
+.filter-group input {
+    padding: 8px 12px;
+    background: rgba(30, 27, 75, 0.7);
+    border: 1px solid rgba(139, 69, 255, 0.3);
+    border-radius: 6px;
+    color: #e0e7ff;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.filter-group select:focus,
+.filter-group input:focus {
+    outline: none;
+    border-color: rgba(139, 69, 255, 0.6);
+    box-shadow: 0 0 10px rgba(139, 69, 255, 0.2);
+}
+
+.filter-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    background: rgba(139, 69, 255, 0.2);
+    border: 1px solid rgba(139, 69, 255, 0.4);
+    color: #e0e7ff;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.filter-btn:hover {
+    background: rgba(139, 69, 255, 0.4);
+    transform: translateY(-2px);
+}
+
+.filter-btn.active {
+    background: rgba(139, 69, 255, 0.6);
+    border-color: rgba(139, 69, 255, 0.8);
+    box-shadow: 0 0 15px rgba(139, 69, 255, 0.3);
+}
+
+.clear-filters-btn {
+    background: rgba(239, 68, 68, 0.2);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    color: #fca5a5;
+}
+
+.clear-filters-btn:hover {
+    background: rgba(239, 68, 68, 0.4);
+}
+
+/* ENTRIES GRID LAYOUT - EXACTLY 3 PER ROW */
 #entries-list {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     gap: 25px;
     margin-top: 20px;
 }
@@ -544,6 +637,26 @@ body::before {
     transform: translateY(-8px) scale(1.02);
     box-shadow: 0 20px 50px rgba(139, 69, 255, 0.3);
     border-color: rgba(139, 69, 255, 0.5);
+}
+
+/* ENTRY TITLE - NEW */
+.entry-title {
+    color: #ffd700;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+    text-align: center;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+    background: linear-gradient(45deg, #ffd700, #ffed4e, #fbbf24);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: titleGlow 3s ease-in-out infinite;
+}
+
+@keyframes titleGlow {
+    0%, 100% { opacity: 0.9; }
+    50% { opacity: 1; }
 }
 
 .entry-header {
@@ -761,6 +874,7 @@ body::before {
     text-align: center;
     padding: 60px 20px;
     position: relative;
+    grid-column: 1 / -1; /* Span all columns */
 }
 
 .empty-state h3 {
@@ -786,6 +900,7 @@ body::before {
     border: 2px dashed rgba(139, 69, 255, 0.3);
     border-radius: 15px;
     margin: 20px;
+    grid-column: 1 / -1; /* Span all columns */
 }
 
 /* Achievement System - Kept as Grid */
@@ -1186,12 +1301,22 @@ body::before {
 }
 
 /* Responsive Design */
+@media (max-width: 1200px) {
+    #entries-list {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 @media (max-width: 768px) {
     .character-name {
         font-size: 2.5rem;
     }
     
     .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .filter-row {
         grid-template-columns: 1fr;
     }
     

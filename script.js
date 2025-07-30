@@ -1,4 +1,4 @@
-// Lady Yunalesca's Complete Enhanced Tracker - Full Script
+// Lady Yunalesca's Complete Enhanced Tracker with Titles & Filters - Full Script
 let yunalescaEntries = JSON.parse(localStorage.getItem('yunalesca_entries') || '[]');
 let yunalescaAchievements = JSON.parse(localStorage.getItem('yunalesca_achievements') || '[]');
 let yunalescaCharacterData = JSON.parse(localStorage.getItem('yunalesca_character_data') || '{}');
@@ -8,6 +8,15 @@ let currentPortrait = localStorage.getItem('yunalesca_portrait') || '';
 let githubToken = localStorage.getItem('yunalesca_github_token') || '';
 let isCloudEnabled = false;
 let lastSyncTime = 0;
+
+// Filter state
+let currentFilters = {
+    type: 'all',
+    realm: 'all',
+    level: 'all',
+    shadowArts: 'all',
+    search: ''
+};
 
 // Achievement definitions
 const achievements = [
@@ -50,6 +59,83 @@ const yunalescaQuotes = [
     "The spiral of death that plagued Spira finds new form in this realm.",
     "Between worlds I walk, carrying wisdom from both Spira and Azeroth."
 ];
+
+// TITLE GENERATION - NEW FEATURE
+const titlePrefixes = [
+    'Whispers of', 'Echoes from', 'Shadows in', 'Visions of', 'Dreams from', 
+    'Memories of', 'Tales from', 'Secrets of', 'Mysteries in', 'Chronicles of',
+    'Reflections in', 'Journey through', 'Wandering in', 'Transcendence in',
+    'Awakening in', 'Pilgrimage to', 'Contemplation in', 'Ascension from'
+];
+
+const titleSuffixes = {
+    'Dungeon': ['Trial', 'Ordeal', 'Challenge', 'Test', 'Labyrinth'],
+    'Raid': ['Conquest', 'Triumph', 'Victory', 'Legend', 'Saga'],
+    'PvP': ['Duel', 'Conflict', 'Battle', 'War', 'Clash'],
+    'Exploration': ['Discovery', 'Journey', 'Voyage', 'Quest', 'Adventure'],
+    'Questing': ['Mission', 'Purpose', 'Calling', 'Destiny', 'Path'],
+    'Social': ['Gathering', 'Meeting', 'Communion', 'Bond', 'Alliance'],
+    'Achievement': ['Milestone', 'Accomplishment', 'Breakthrough', 'Ascension', 'Evolution'],
+    'Crafting': ['Creation', 'Artistry', 'Mastery', 'Craft', 'Innovation'],
+    'Event': ['Celebration', 'Ceremony', 'Occasion', 'Festival', 'Ritual'],
+    'Milestone': ['Threshold', 'Passage', 'Transformation', 'Awakening', 'Revelation'],
+    'Story': ['Tale', 'Chronicle', 'Saga', 'Legend', 'Epic'],
+    'Other': ['Experience', 'Moment', 'Encounter', 'Phenomenon', 'Mystery']
+};
+
+const levelTitles = {
+    1: 'First Steps',
+    10: 'Shadow Awakening', 
+    20: 'Void Apprentice',
+    30: 'Ethereal Walker',
+    40: 'Shadow Adept',
+    50: 'Transcendent Being',
+    60: 'Void Master',
+    70: 'Eternal Guardian',
+    80: 'Ascended One'
+};
+
+function generateEntryTitle(entry) {
+    const { realm, type, level, description } = entry;
+    
+    // Special titles for level milestones
+    if (levelTitles[level]) {
+        return `${levelTitles[level]} - ${realm}`;
+    }
+    
+    // Check for special words in description for custom titles
+    const desc = description.toLowerCase();
+    if (desc.includes('sunwell') || desc.includes('magical energy')) {
+        return `Sunwell Awakening`;
+    }
+    if (desc.includes('castle') || desc.includes('spires')) {
+        return `Visions of Ancient Spires`;
+    }
+    if (desc.includes('peaceful') || desc.includes('tranquil')) {
+        return `Serenity in ${realm}`;
+    }
+    if (desc.includes('shadow') || desc.includes('darkness')) {
+        return `Shadow Embrace in ${realm}`;
+    }
+    if (desc.includes('first') || desc.includes('beginning')) {
+        return `First Light of ${realm}`;
+    }
+    
+    // Generate based on type and realm
+    const prefix = titlePrefixes[Math.floor(Math.random() * titlePrefixes.length)];
+    const suffixes = titleSuffixes[type] || titleSuffixes['Other'];
+    const suffix = suffixes[Math.floor(Math.random() * suffixes.length)];
+    
+    // Different title formats
+    const formats = [
+        `${prefix} ${realm}`,
+        `${realm} ${suffix}`,
+        `${prefix} the ${suffix}`,
+        `${suffix} of ${realm}`
+    ];
+    
+    return formats[Math.floor(Math.random() * formats.length)];
+}
 
 // ENHANCED ENTRY FORMATTING FUNCTIONS - NEW
 function formatEntryDescription(description) {
@@ -97,6 +183,114 @@ function extractFeelingsFromDescription(description) {
         description: cleanDescription,
         feelings: feelings.length > 0 ? feelings.join(' ') : null
     };
+}
+
+// FILTER FUNCTIONS - NEW
+function applyFilters(entries) {
+    return entries.filter(entry => {
+        // Type filter
+        if (currentFilters.type !== 'all' && entry.type !== currentFilters.type) {
+            return false;
+        }
+        
+        // Realm filter
+        if (currentFilters.realm !== 'all' && entry.realm !== currentFilters.realm) {
+            return false;
+        }
+        
+        // Level filter
+        if (currentFilters.level !== 'all') {
+            const level = parseInt(entry.level);
+            switch (currentFilters.level) {
+                case '1-10':
+                    if (level < 1 || level > 10) return false;
+                    break;
+                case '11-20':
+                    if (level < 11 || level > 20) return false;
+                    break;
+                case '21-40':
+                    if (level < 21 || level > 40) return false;
+                    break;
+                case '41-60':
+                    if (level < 41 || level > 60) return false;
+                    break;
+                case '61-80':
+                    if (level < 61 || level > 80) return false;
+                    break;
+            }
+        }
+        
+        // Shadow Arts filter
+        if (currentFilters.shadowArts !== 'all' && entry.shadowArts !== currentFilters.shadowArts) {
+            return false;
+        }
+        
+        // Search filter
+        if (currentFilters.search) {
+            const searchTerm = currentFilters.search.toLowerCase();
+            const searchText = (entry.description + ' ' + entry.realm + ' ' + entry.type).toLowerCase();
+            if (!searchText.includes(searchTerm)) {
+                return false;
+            }
+        }
+        
+        return true;
+    });
+}
+
+function updateFilter(filterType, value) {
+    currentFilters[filterType] = value;
+    displayEntries();
+    
+    // Update filter button states
+    updateFilterButtonStates();
+}
+
+function updateFilterButtonStates() {
+    // Update type filter buttons
+    document.querySelectorAll('.type-filter').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.type === currentFilters.type);
+    });
+}
+
+function clearAllFilters() {
+    currentFilters = {
+        type: 'all',
+        realm: 'all',
+        level: 'all',
+        shadowArts: 'all',
+        search: ''
+    };
+    
+    // Reset form elements
+    document.getElementById('filter-type').value = 'all';
+    document.getElementById('filter-realm').value = 'all';
+    document.getElementById('filter-level').value = 'all';
+    document.getElementById('filter-shadow-arts').value = 'all';
+    document.getElementById('filter-search').value = '';
+    
+    updateFilterButtonStates();
+    displayEntries();
+    showNotification('🧹 All filters cleared');
+}
+
+function populateFilterOptions() {
+    // Get unique realms
+    const realms = [...new Set(yunalescaEntries.map(entry => entry.realm))].sort();
+    const realmSelect = document.getElementById('filter-realm');
+    
+    // Clear existing options except 'All'
+    while (realmSelect.children.length > 1) {
+        realmSelect.removeChild(realmSelect.lastChild);
+    }
+    
+    // Add realm options
+    realms.forEach(realm => {
+        const option = document.createElement('option');
+        option.value = realm;
+        option.textContent = realm;
+        realmSelect.appendChild(option);
+    });
 }
 
 // Unicode-safe base64 encoding
@@ -422,6 +616,7 @@ function saveEntry(entry) {
     
     displayEntries();
     updateAchievements();
+    populateFilterOptions(); // Update filter options with new realm if needed
     resetForm();
     
     if (isCloudEnabled) {
@@ -521,6 +716,7 @@ function editEntry(entryId) {
         // Update display
         displayEntries();
         updateAchievements();
+        populateFilterOptions();
         
         // Sync to cloud
         if (isCloudEnabled) {
@@ -563,6 +759,7 @@ function confirmDelete(entryId) {
     
     displayEntries();
     updateAchievements();
+    populateFilterOptions();
     
     if (isCloudEnabled) {
         syncToCloud();
@@ -572,28 +769,42 @@ function confirmDelete(entryId) {
     showNotification('💔 Memory dissolved from the eternal archive');
 }
 
-// ENHANCED DISPLAY ENTRIES FUNCTION WITH BETTER FORMATTING
+// ENHANCED DISPLAY ENTRIES FUNCTION WITH TITLES AND FILTERING
 function displayEntries() {
     const entriesContainer = document.getElementById('entries-list');
     
-    if (yunalescaEntries.length === 0) {
-        entriesContainer.innerHTML = `
-            <div class="empty-state">
-                <div class="floating-orb"></div>
-                <h3>✨ The Archive Awaits</h3>
-                <p>Lady Yunalesca's journey through Azeroth has yet to be documented. Begin recording your memories to build an eternal chronicle of your adventures.</p>
-            </div>
-        `;
+    // Apply filters
+    const filteredEntries = applyFilters(yunalescaEntries);
+    
+    if (filteredEntries.length === 0) {
+        if (yunalescaEntries.length === 0) {
+            entriesContainer.innerHTML = `
+                <div class="empty-state">
+                    <div class="floating-orb"></div>
+                    <h3>✨ The Archive Awaits</h3>
+                    <p>Lady Yunalesca's journey through Azeroth has yet to be documented. Begin recording your memories to build an eternal chronicle of your adventures.</p>
+                </div>
+            `;
+        } else {
+            entriesContainer.innerHTML = `
+                <div class="no-entries">
+                    <h3>🔍 No memories match your search</h3>
+                    <p>Try adjusting your filters or clearing them to see more entries.</p>
+                </div>
+            `;
+        }
         return;
     }
 
-    entriesContainer.innerHTML = yunalescaEntries.map(entry => {
+    entriesContainer.innerHTML = filteredEntries.map(entry => {
         // Use enhanced formatting functions
         const { description, feelings } = extractFeelingsFromDescription(entry.description || '');
         const formattedDescription = formatEntryDescription(description);
+        const entryTitle = generateEntryTitle(entry);
         
         return `
             <div class="entry-card" data-level="${entry.level}" data-entry-id="${entry.id}">
+                <div class="entry-title">${entryTitle}</div>
                 <div class="entry-header">
                     <div class="entry-meta">
                         <span class="entry-date">${formatDate(entry.date)}</span>
@@ -1057,9 +1268,33 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize everything
     initializeCloudSync();
+    populateFilterOptions();
     displayEntries();
     updateAchievements();
     updateCharacterDisplay();
+    
+    // Filter event listeners
+    document.getElementById('filter-type').addEventListener('change', function() {
+        updateFilter('type', this.value);
+    });
+    
+    document.getElementById('filter-realm').addEventListener('change', function() {
+        updateFilter('realm', this.value);
+    });
+    
+    document.getElementById('filter-level').addEventListener('change', function() {
+        updateFilter('level', this.value);
+    });
+    
+    document.getElementById('filter-shadow-arts').addEventListener('change', function() {
+        updateFilter('shadowArts', this.value);
+    });
+    
+    document.getElementById('filter-search').addEventListener('input', function() {
+        updateFilter('search', this.value);
+    });
+    
+    document.getElementById('clear-filters').addEventListener('click', clearAllFilters);
     
     // Cloud sync button handler
     document.getElementById('cloud-sync-btn').addEventListener('click', function(e) {
@@ -1132,3 +1367,5 @@ window.uploadPortrait = uploadPortrait;
 window.updateCharacterQuote = updateCharacterQuote;
 window.updateCharacterMood = updateCharacterMood;
 window.addEntryEventListeners = addEntryEventListeners;
+window.updateFilter = updateFilter;
+window.clearAllFilters = clearAllFilters;

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lady Yunalesca's Journey - Spira to Azeroth</title>
+    <title>Lady Yunalesca's Journey - Azeroth Chronicles</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -14,299 +14,219 @@
     <div class="floating-orb"></div>
     
     <div class="container">
-        <!-- Header Section -->
+        <!-- Header -->
         <header class="header">
             <h1 class="character-name">Lady Yunalesca</h1>
-            <p class="character-subtitle">The Eternal Summoner's Journey from Spira to Azeroth</p>
-            
-            <!-- Character Card -->
-            <div class="character-card">
-                <div class="character-portrait-container">
-                    <img id="character-portrait" class="character-portrait" alt="Lady Yunalesca">
-                    <div class="portrait-placeholder" onclick="uploadPortrait()">
-                        📸 Click to Upload Portrait
-                    </div>
-                </div>
-                
-                <!-- Character Bio - RESTORED -->
-                <div class="character-bio">
-                    <h3>The Eternal Summoner</h3>
-                    <p>Once the first summoner to defeat Sin in the realm of Spira, Lady Yunalesca has transcended death itself. Having sacrificed her mortal form to become an eternal guardian of Zanarkand's sacred dome, she now finds herself drawn to the mystical energies of Azeroth. In this new world, she walks the path of shadow magic, finding familiar echoes of the forbidden arts she once knew.</p>
-                    
-                    <p>Her eternal wisdom guides her through Azeroth's trials, comparing each experience to her memories of Spira's endless spiral of death and rebirth. As a Shadow Priest, she embraces the void's whispers, recognizing in them the same cosmic truths that once allowed her to commune with Sin itself.</p>
-                </div>
-                
-                <div id="character-quote" class="character-quote">
-                    "Click to hear Yunalesca's wisdom"
-                </div>
-                <div class="character-mood" onclick="updateCharacterMood()" title="Click to change mood">
-                    Mood: <span id="character-mood">Contemplative</span>
-                </div>
-            </div>
-            
-            <!-- Cloud Sync Controls -->
-            <div class="cloud-controls">
-                <button id="cloud-sync-btn" class="cloud-sync-btn">☁️ Cloud Sync</button>
-                <div id="sync-status" class="sync-status" style="display: none;">Not Connected</div>
-            </div>
+            <p class="character-subtitle">Shadow Priest of Spira, Walker Between Worlds</p>
         </header>
 
-        <!-- New Entry Form -->
-        <section class="form-section">
-            <div class="form-card">
-                <h2>✨ Record New Memory</h2>
-                <form id="entry-form">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="date">Date</label>
-                            <input type="date" id="date" name="date" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="level">Character Level</label>
-                            <input type="number" id="level" name="level" min="1" max="80" required>
-                        </div>
-                    </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="realm">Realm/Zone</label>
-                            <select id="realm" name="realm" required>
-                                <option value="">Select Realm...</option>
-                                
-                                <!-- Major Cities -->
-                                <optgroup label="Major Cities">
-                                    <option value="Stormwind City">Stormwind City</option>
-                                    <option value="Ironforge">Ironforge</option>
-                                    <option value="Darnassus">Darnassus</option>
-                                    <option value="The Exodar">The Exodar</option>
-                                    <option value="Silvermoon City">Silvermoon City</option>
-                                    <option value="Orgrimmar">Orgrimmar</option>
-                                    <option value="Thunder Bluff">Thunder Bluff</option>
-                                    <option value="Undercity">Undercity</option>
-                                    <option value="Shattrath City">Shattrath City</option>
-                                    <option value="Dalaran">Dalaran</option>
-                                </optgroup>
-                                
-                                <!-- Starting Zones -->
-                                <optgroup label="Starting Zones">
-                                    <option value="Elwynn Forest">Elwynn Forest</option>
-                                    <option value="Dun Morogh">Dun Morogh</option>
-                                    <option value="Teldrassil">Teldrassil</option>
-                                    <option value="Azuremyst Isle">Azuremyst Isle</option>
-                                    <option value="Eversong Woods">Eversong Woods</option>
-                                    <option value="Durotar">Durotar</option>
-                                    <option value="Mulgore">Mulgore</option>
-                                    <option value="Tirisfal Glades">Tirisfal Glades</option>
-                                </optgroup>
-                                
-                                <!-- Classic Zones -->
-                                <optgroup label="Classic Zones">
-                                    <option value="Westfall">Westfall</option>
-                                    <option value="Redridge Mountains">Redridge Mountains</option>
-                                    <option value="Darkshore">Darkshore</option>
-                                    <option value="Loch Modan">Loch Modan</option>
-                                    <option value="Wetlands">Wetlands</option>
-                                    <option value="Ghostlands">Ghostlands</option>
-                                    <option value="The Barrens">The Barrens</option>
-                                    <option value="Stonetalon Mountains">Stonetalon Mountains</option>
-                                    <option value="Desolace">Desolace</option>
-                                    <option value="Thousand Needles">Thousand Needles</option>
-                                    <option value="Tanaris">Tanaris</option>
-                                    <option value="Stranglethorn Vale">Stranglethorn Vale</option>
-                                    <option value="Un'Goro Crater">Un'Goro Crater</option>
-                                    <option value="Felwood">Felwood</option>
-                                    <option value="Azshara">Azshara</option>
-                                    <option value="Winterspring">Winterspring</option>
-                                    <option value="Eastern Plaguelands">Eastern Plaguelands</option>
-                                    <option value="Western Plaguelands">Western Plaguelands</option>
-                                    <option value="Deadwind Pass">Deadwind Pass</option>
-                                    <option value="Burning Steppes">Burning Steppes</option>
-                                    <option value="Blackrock Mountain">Blackrock Mountain</option>
-                                </optgroup>
-                                
-                                <!-- Outland -->
-                                <optgroup label="Outland">
-                                    <option value="Hellfire Peninsula">Hellfire Peninsula</option>
-                                    <option value="Zangarmarsh">Zangarmarsh</option>
-                                    <option value="Nagrand">Nagrand</option>
-                                    <option value="Blade's Edge Mountains">Blade's Edge Mountains</option>
-                                    <option value="Terokkar Forest">Terokkar Forest</option>
-                                    <option value="Netherstorm">Netherstorm</option>
-                                    <option value="Shadowmoon Valley">Shadowmoon Valley</option>
-                                </optgroup>
-                                
-                                <!-- Northrend -->
-                                <optgroup label="Northrend">
-                                    <option value="Borean Tundra">Borean Tundra</option>
-                                    <option value="Howling Fjord">Howling Fjord</option>
-                                    <option value="Dragonblight">Dragonblight</option>
-                                    <option value="Grizzly Hills">Grizzly Hills</option>
-                                    <option value="Zul'Drak">Zul'Drak</option>
-                                    <option value="Sholazar Basin">Sholazar Basin</option>
-                                    <option value="The Storm Peaks">The Storm Peaks</option>
-                                    <option value="Icecrown">Icecrown</option>
-                                    <option value="Wintergrasp">Wintergrasp</option>
-                                </optgroup>
-                                
-                                <!-- Cataclysm -->
-                                <optgroup label="Cataclysm">
-                                    <option value="Mount Hyjal">Mount Hyjal</option>
-                                    <option value="Vashj'ir">Vashj'ir</option>
-                                    <option value="Deepholm">Deepholm</option>
-                                    <option value="Uldum">Uldum</option>
-                                    <option value="Twilight Highlands">Twilight Highlands</option>
-                                </optgroup>
-                                
-                                <!-- Pandaria -->
-                                <optgroup label="Pandaria">
-                                    <option value="The Jade Forest">The Jade Forest</option>
-                                    <option value="Valley of the Four Winds">Valley of the Four Winds</option>
-                                    <option value="Krasarang Wilds">Krasarang Wilds</option>
-                                    <option value="Kun-Lai Summit">Kun-Lai Summit</option>
-                                    <option value="Townlong Steppes">Townlong Steppes</option>
-                                    <option value="Dread Wastes">Dread Wastes</option>
-                                    <option value="Vale of Eternal Blossoms">Vale of Eternal Blossoms</option>
-                                    <option value="Isle of Thunder">Isle of Thunder</option>
-                                    <option value="Timeless Isle">Timeless Isle</option>
-                                </optgroup>
-                                
-                                <!-- Draenor -->
-                                <optgroup label="Draenor">
-                                    <option value="Frostfire Ridge">Frostfire Ridge</option>
-                                    <option value="Shadowmoon Valley (Draenor)">Shadowmoon Valley (Draenor)</option>
-                                    <option value="Gorgrond">Gorgrond</option>
-                                    <option value="Talador">Talador</option>
-                                    <option value="Spires of Arak">Spires of Arak</option>
-                                    <option value="Nagrand (Draenor)">Nagrand (Draenor)</option>
-                                    <option value="Tanaan Jungle">Tanaan Jungle</option>
-                                </optgroup>
-                                
-                                <!-- Legion -->
-                                <optgroup label="Broken Isles">
-                                    <option value="Dalaran (Broken Isles)">Dalaran (Broken Isles)</option>
-                                    <option value="Azsuna">Azsuna</option>
-                                    <option value="Val'sharah">Val'sharah</option>
-                                    <option value="Highmountain">Highmountain</option>
-                                    <option value="Stormheim">Stormheim</option>
-                                    <option value="Suramar">Suramar</option>
-                                    <option value="Broken Shore">Broken Shore</option>
-                                    <option value="Argus">Argus</option>
-                                </optgroup>
-                                
-                                <!-- Battle for Azeroth -->
-                                <optgroup label="Kul Tiras & Zandalar">
-                                    <option value="Boralus">Boralus</option>
-                                    <option value="Tiragarde Sound">Tiragarde Sound</option>
-                                    <option value="Drustvar">Drustvar</option>
-                                    <option value="Stormsong Valley">Stormsong Valley</option>
-                                    <option value="Dazar'alor">Dazar'alor</option>
-                                    <option value="Zuldazar">Zuldazar</option>
-                                    <option value="Nazmir">Nazmir</option>
-                                    <option value="Vol'dun">Vol'dun</option>
-                                    <option value="Nazjatar">Nazjatar</option>
-                                    <option value="Mechagon">Mechagon</option>
-                                </optgroup>
-                                
-                                <!-- Shadowlands -->
-                                <optgroup label="Shadowlands">
-                                    <option value="Oribos">Oribos</option>
-                                    <option value="Bastion">Bastion</option>
-                                    <option value="Maldraxxus">Maldraxxus</option>
-                                    <option value="Ardenweald">Ardenweald</option>
-                                    <option value="Revendreth">Revendreth</option>
-                                    <option value="The Maw">The Maw</option>
-                                    <option value="Korthia">Korthia</option>
-                                    <option value="Zereth Mortis">Zereth Mortis</option>
-                                </optgroup>
-                                
-                                <!-- Dragonflight -->
-                                <optgroup label="Dragon Isles">
-                                    <option value="Valdrakken">Valdrakken</option>
-                                    <option value="The Waking Shores">The Waking Shores</option>
-                                    <option value="Ohn'ahran Plains">Ohn'ahran Plains</option>
-                                    <option value="The Azure Span">The Azure Span</option>
-                                    <option value="Thaldraszus">Thaldraszus</option>
-                                    <option value="Zaralek Cavern">Zaralek Cavern</option>
-                                    <option value="Emerald Dream">Emerald Dream</option>
-                                </optgroup>
-                                
-                                <!-- The War Within -->
-                                <optgroup label="Khaz Algar">
-                                    <option value="Isle of Dorn">Isle of Dorn</option>
-                                    <option value="The Ringing Deeps">The Ringing Deeps</option>
-                                    <option value="Hallowfall">Hallowfall</option>
-                                    <option value="Azj-Kahet">Azj-Kahet</option>
-                                </optgroup>
-                                
-                                <!-- Custom Option -->
-                                <option value="custom">Other (Custom)</option>
-                            </select>
-                            
-                            <div id="custom-realm-input" class="custom-zone-input">
-                                <input type="text" id="custom-realm" name="custom-realm" placeholder="Enter custom realm/zone name">
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="type">Experience Type</label>
-                            <select id="type" name="type" required>
-                                <option value="">Select Type...</option>
-                                <option value="Questing">Questing</option>
-                                <option value="Dungeon">Dungeon</option>
-                                <option value="Raid">Raid</option>
-                                <option value="PvP">PvP</option>
-                                <option value="Exploration">Exploration</option>
-                                <option value="Social">Social</option>
-                                <option value="Achievement">Achievement</option>
-                                <option value="Crafting">Crafting</option>
-                                <option value="Event">Event</option>
-                                <option value="Milestone">Milestone</option>
-                                <option value="Story">Story</option>
-                                <option value="Other">Other</option>
-                            </select>
-                        </div>
-                    </div>
-                    
+        <!-- Character Card -->
+        <section class="character-card">
+            <div class="character-portrait-container">
+                <img id="character-portrait" class="character-portrait" alt="Lady Yunalesca" onclick="uploadPortrait()">
+                <div class="portrait-placeholder" onclick="uploadPortrait()">
+                    <span>📸 Upload Portrait</span>
+                </div>
+            </div>
+            
+            <!-- Character Bio -->
+            <div class="character-bio">
+                <h3>The Eternal Summoner's Tale</h3>
+                <p>Once the High Summoner of Spira, Lady Yunalesca transcended death itself, becoming an eternal guardian against the spiral of destruction. Through ancient magics and unfathomable sacrifice, she crossed the veil between worlds, finding herself in the mystical realm of Azeroth.</p>
+                <p>Now walking the paths of shadow and discipline, she seeks to understand this new world's mysteries while carrying the wisdom of her fallen homeland. Each step forward is both a remembrance of Spira's lost dreams and a journey toward new understanding in this realm of endless possibilities.</p>
+                <p>Her mastery of death magic finds new expression in Azeroth's shadow arts, while her eternal perspective grants her unique insight into the cosmic forces that shape both worlds. She is neither fully living nor truly dead, but something transcendent—a bridge between the old world's sorrows and the new world's promise.</p>
+            </div>
+            
+            <div id="character-quote" class="character-quote" onclick="updateCharacterQuote()">
+                "Death is not to be feared, but embraced as the final aeon of one's journey."
+            </div>
+            <div class="character-mood" onclick="updateCharacterMood()">Contemplative</div>
+        </section>
+
+        <!-- Cloud Sync Controls -->
+        <section class="cloud-controls">
+            <button id="cloud-sync-btn" class="cloud-sync-btn" title="Click to manage cloud sync">
+                💾 Local Storage
+            </button>
+            <span id="sync-status" class="sync-status" style="display: none;">Not Connected</span>
+        </section>
+
+        <!-- Achievements Section -->
+        <section class="achievements-section">
+            <h2>🏆 Eternal Achievements</h2>
+            <div id="achievements-list" class="achievements-list">
+                <!-- Achievements will be populated by JavaScript -->
+            </div>
+        </section>
+
+        <!-- Entry Form -->
+        <section class="form-card">
+            <h2>📝 Chronicle New Memory</h2>
+            <form id="entry-form">
+                <div class="form-row">
                     <div class="form-group">
-                        <label for="shadow-arts">Shadow Arts Specialization</label>
-                        <select id="shadow-arts" name="shadow-arts" required>
-                            <option value="">Select Specialization...</option>
-                            <option value="Shadow">Shadow</option>
-                            <option value="Discipline">Discipline</option>
-                            <option value="Holy">Holy</option>
+                        <label for="date">Date</label>
+                        <input type="date" id="date" name="date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="level">Character Level</label>
+                        <input type="number" id="level" name="level" min="1" max="80" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="realm">Realm/Zone</label>
+                        <select id="realm" name="realm" onchange="handleRealmChange()" required>
+                            <option value="">Select a realm...</option>
+                            <option value="Eversong Woods">Eversong Woods</option>
+                            <option value="Ghostlands">Ghostlands</option>
+                            <option value="Silvermoon City">Silvermoon City</option>
+                            <option value="Undercity">Undercity</option>
+                            <option value="Tirisfal Glades">Tirisfal Glades</option>
+                            <option value="Silverpine Forest">Silverpine Forest</option>
+                            <option value="The Barrens">The Barrens</option>
+                            <option value="Stranglethorn Vale">Stranglethorn Vale</option>
+                            <option value="Eastern Plaguelands">Eastern Plaguelands</option>
+                            <option value="Western Plaguelands">Western Plaguelands</option>
+                            <option value="Blackrock Mountain">Blackrock Mountain</option>
+                            <option value="Outland">Outland</option>
+                            <option value="Hellfire Peninsula">Hellfire Peninsula</option>
+                            <option value="Zangarmarsh">Zangarmarsh</option>
+                            <option value="Nagrand">Nagrand</option>
+                            <option value="Blade's Edge Mountains">Blade's Edge Mountains</option>
+                            <option value="Netherstorm">Netherstorm</option>
+                            <option value="Shadowmoon Valley">Shadowmoon Valley</option>
+                            <option value="Northrend">Northrend</option>
+                            <option value="Dragonblight">Dragonblight</option>
+                            <option value="Icecrown">Icecrown</option>
+                            <option value="Storm Peaks">Storm Peaks</option>
+                            <option value="Dalaran">Dalaran</option>
+                            <option value="Orgrimmar">Orgrimmar</option>
+                            <option value="Stormwind City">Stormwind City</option>
+                            <option value="Ironforge">Ironforge</option>
+                            <option value="Darnassus">Darnassus</option>
+                            <option value="Thunder Bluff">Thunder Bluff</option>
+                            <option value="Shattrath City">Shattrath City</option>
+                            <option value="custom">Custom Zone...</option>
+                        </select>
+                        <div id="custom-realm-input" class="custom-zone-input">
+                            <input type="text" id="custom-realm" name="custom-realm" placeholder="Enter custom zone name...">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="type">Activity Type</label>
+                        <select id="type" name="type" required>
+                            <option value="">Select type...</option>
+                            <option value="Questing">Questing</option>
+                            <option value="Dungeon">Dungeon</option>
+                            <option value="Raid">Raid</option>
+                            <option value="PvP">PvP</option>
+                            <option value="Exploration">Exploration</option>
+                            <option value="Social">Social</option>
+                            <option value="Achievement">Achievement</option>
+                            <option value="Crafting">Crafting</option>
+                            <option value="Event">Event</option>
+                            <option value="Milestone">Milestone</option>
+                            <option value="Story">Story</option>
+                            <option value="Other">Other</option>
                         </select>
                     </div>
-                    
-                    <div class="form-group">
-                        <label for="description">Memory Description</label>
-                        <textarea id="description" name="description" 
-                                placeholder="Document your experience... What wisdom did you gain? How does this moment in Azeroth compare to your memories of Spira? What eternal truths were revealed?" 
-                                required></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="screenshot">Memory Crystal (Screenshot)</label>
-                        <input type="file" id="screenshot" name="screenshot" accept="image/*">
-                    </div>
-                    
-                    <button type="submit" class="submit-btn">✨ Crystallize Memory</button>
-                </form>
+                </div>
+
+                <div class="form-group">
+                    <label for="shadow-arts">Shadow Arts Specialization</label>
+                    <select id="shadow-arts" name="shadow-arts" required>
+                        <option value="">Select specialization...</option>
+                        <option value="Shadow">Shadow</option>
+                        <option value="Discipline">Discipline</option>
+                        <option value="Holy">Holy</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Memory Description</label>
+                    <textarea id="description" name="description" placeholder="Describe this memory in detail... What happened? How did it feel? What did you learn?" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="screenshot">Memory Crystal (Screenshot)</label>
+                    <input type="file" id="screenshot" name="screenshot" accept="image/*">
+                </div>
+
+                <button type="submit" class="submit-btn">✨ Crystallize Memory</button>
+            </form>
+        </section>
+
+        <!-- Filter Controls -->
+        <section class="filter-controls">
+            <h3>🔍 Filter Memories</h3>
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label for="filter-type">Activity Type</label>
+                    <select id="filter-type">
+                        <option value="all">All Types</option>
+                        <option value="Questing">Questing</option>
+                        <option value="Dungeon">Dungeon</option>
+                        <option value="Raid">Raid</option>
+                        <option value="PvP">PvP</option>
+                        <option value="Exploration">Exploration</option>
+                        <option value="Social">Social</option>
+                        <option value="Achievement">Achievement</option>
+                        <option value="Crafting">Crafting</option>
+                        <option value="Event">Event</option>
+                        <option value="Milestone">Milestone</option>
+                        <option value="Story">Story</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="filter-realm">Realm/Zone</label>
+                    <select id="filter-realm">
+                        <option value="all">All Realms</option>
+                        <!-- Options populated by JavaScript -->
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="filter-level">Level Range</label>
+                    <select id="filter-level">
+                        <option value="all">All Levels</option>
+                        <option value="1-10">1-10</option>
+                        <option value="11-20">11-20</option>
+                        <option value="21-40">21-40</option>
+                        <option value="41-60">41-60</option>
+                        <option value="61-80">61-80</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="filter-shadow-arts">Shadow Arts</label>
+                    <select id="filter-shadow-arts">
+                        <option value="all">All Specs</option>
+                        <option value="Shadow">Shadow</option>
+                        <option value="Discipline">Discipline</option>
+                        <option value="Holy">Holy</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="filter-search">Search</label>
+                    <input type="text" id="filter-search" placeholder="Search memories...">
+                </div>
+            </div>
+            
+            <div class="filter-buttons">
+                <button id="clear-filters" class="filter-btn clear-filters-btn">🧹 Clear All Filters</button>
             </div>
         </section>
 
-        <!-- Achievements Section - MOVED ABOVE ENTRIES -->
-        <section class="achievements-section">
-            <div class="form-card">
-                <h2>🏆 Achievements of Transcendence</h2>
-                <div id="achievements-list" class="achievements-list"></div>
-            </div>
-        </section>
-
-        <!-- Entries Display -->
+        <!-- Entries List -->
         <section class="entries-section">
-            <div class="form-card">
-                <h2>📚 Eternal Chronicles</h2>
-                <div id="entries-list"></div>
+            <h2>📚 Chronicle of Memories</h2>
+            <div id="entries-list">
+                <!-- Entries will be populated by JavaScript -->
             </div>
         </section>
     </div>
@@ -317,33 +237,36 @@
             <h2>☁️ Cloud Sync Setup</h2>
             
             <div class="setup-instructions">
-                <h3>⚠️ GitHub Token Setup Required</h3>
-                <p>Your current token doesn't have the right permissions. Follow these steps:</p>
+                <h3>⚠️ GitHub Token Required</h3>
+                <p>To sync your journey across devices, you need a GitHub Personal Access Token:</p>
                 
                 <ol>
-                    <li><strong>Go to GitHub:</strong> <a href="https://github.com/settings/personal-access-tokens/new" target="_blank">Create New Token</a></li>
-                    <li><strong>Token Type:</strong> Select "Fine-grained tokens"</li>
-                    <li><strong>Repository:</strong> Select "lady-yunalesca-journey"</li>
-                    <li><strong>Permissions:</strong> Enable:
+                    <li>Go to <a href="https://github.com/settings/tokens" target="_blank">GitHub Settings → Personal Access Tokens → Tokens (classic)</a></li>
+                    <li>Click "Generate new token (classic)"</li>
+                    <li>Give it a name like "Lady Yunalesca Journey"</li>
+                    <li>Set expiration to "No expiration" or your preferred timeframe</li>
+                    <li>Select these permissions:
                         <ul>
-                            <li>✅ Contents: <strong>Read and write</strong></li>
-                            <li>✅ Metadata: <strong>Read</strong></li>
-                            <li>✅ Pull requests: <strong>Write</strong> (optional)</li>
+                            <li>✅ <strong>repo</strong> (Full control of private repositories)</li>
                         </ul>
                     </li>
-                    <li><strong>Generate & Copy</strong> the token</li>
+                    <li>Click "Generate token"</li>
+                    <li>Copy the token and paste it below</li>
                 </ol>
                 
-                <div class="fallback-notice">
-                    <p>💡 <strong>Don't want cloud sync?</strong> That's okay! Your tracker works perfectly without it. Your data is saved locally in your browser.</p>
-                </div>
+                <p><strong>Important:</strong> Keep your token safe! Anyone with this token can access your repository.</p>
             </div>
             
-            <input type="text" id="github-token-input" placeholder="Paste your GitHub Personal Access Token here">
+            <input type="text" id="github-token-input" placeholder="Paste your GitHub token here..." />
             
             <div class="cloud-setup-buttons">
-                <button class="secondary-btn" onclick="skipCloudSetup()">Skip Cloud Sync</button>
-                <button class="primary-btn" onclick="connectToCloud()">Connect to Cloud</button>
+                <button onclick="connectToCloud()" class="primary-btn">🔗 Connect to Cloud</button>
+                <button onclick="skipCloudSetup()" class="secondary-btn">📱 Use Local Only</button>
+                <button onclick="closeCloudSetup()" class="secondary-btn">❌ Cancel</button>
+            </div>
+            
+            <div class="fallback-notice">
+                <p><strong>Note:</strong> If you skip cloud sync, your data will be saved locally in your browser. You can always set up cloud sync later!</p>
             </div>
         </div>
     </div>
