@@ -600,6 +600,7 @@ function addEntry() {
         date: formData.get('date'),
         realm: formData.get('realm') === 'custom' ? formData.get('custom-realm') : formData.get('realm'),
         type: formData.get('type'),
+        title: formData.get('title'),
         description: formData.get('description'),
         level: parseInt(formData.get('level')),
         shadowArts: formData.get('shadow-arts'),
@@ -714,6 +715,11 @@ function editEntry(entryId) {
                 </div>
                 
                 <div class="form-group">
+                    <label for="edit-title">Title</label>
+                    <input type="text" id="edit-title" name="title" value="${entry.title || ''}" placeholder="Enter a title for this memory..." required>
+                </div>
+                
+                <div class="form-group">
                     <label for="edit-description">Description</label>
                     <textarea id="edit-description" name="description" required>${entry.description}</textarea>
                 </div>
@@ -739,6 +745,7 @@ function editEntry(entryId) {
         entry.realm = formData.get('realm');
         entry.type = formData.get('type');
         entry.shadowArts = formData.get('shadow-arts');
+        entry.title = formData.get('title');
         entry.description = formData.get('description');
         entry.timestamp = new Date().toISOString(); // Update timestamp
         
@@ -832,7 +839,7 @@ function displayEntries() {
         // Use enhanced formatting functions
         const { description, feelings } = extractFeelingsFromDescription(entry.description || '');
         const formattedDescription = formatEntryDescription(description);
-        const entryTitle = generateEntryTitle(entry);
+        const entryTitle = entry.title || generateEntryTitle(entry); // Use custom title if available
         
         return `
             <div class="entry-card" data-level="${entry.level}" data-entry-id="${entry.id}">
@@ -854,7 +861,7 @@ function displayEntries() {
                     </div>
                 </div>
                 <div class="entry-content">
-                    <div class="entry-description">${formattedDescription}</div>
+                    <div class="entry-description scrollable">${formattedDescription}</div>
                     ${feelings ? `<div class="entry-notes">${feelings}</div>` : ''}
                     ${entry.screenshot ? `
                         <div class="entry-screenshot">
