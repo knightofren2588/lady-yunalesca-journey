@@ -350,6 +350,38 @@ async function syncToCloud() {
     try {
         updateSyncStatus('🔄 Syncing to cloud...', false);
         
+        // SAFETY CHECK: Don't sync empty data if cloud has data
+        const localDataEmpty = (!yunalescaEntries || yunalescaEntries.length === 0) && 
+                              (!yunalescaAchievements || yunalescaAchievements.length === 0);
+        
+        if (localDataEmpty) {
+            // Check if cloud has data before overwriting
+            try {
+                const cloudCheckResponse = await fetch('https://api.github.com/repos/knightofren2588/lady-yunalesca-journey/contents/data/yunalesca-data.json', {
+                    headers: {
+                        'Authorization': `token ${githubToken}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+                
+                if (cloudCheckResponse.ok) {
+                    const cloudFileData = await cloudCheckResponse.json();
+                    const cloudContent = base64ToUnicode(cloudFileData.content);
+                    const cloudData = JSON.parse(cloudContent);
+                    
+                    // If cloud has data and local is empty, don't overwrite
+                    if ((cloudData.entries && cloudData.entries.length > 0) || 
+                        (cloudData.achievements && cloudData.achievements.length > 0)) {
+                        console.log('⚠️ Local data is empty but cloud has data - skipping sync to prevent data loss');
+                        updateSyncStatus('⚠️ Skipped sync - local empty, cloud has data', true);
+                        return false;
+                    }
+                }
+            } catch (error) {
+                console.log('Could not check cloud data, proceeding with sync');
+            }
+        }
+        
         const data = {
             entries: yunalescaEntries,
             achievements: yunalescaAchievements,
@@ -1188,8 +1220,21 @@ function initializeCloudSync() {
             syncStatus.className = 'sync-status success';
         }
         
-        // Try to load from cloud on startup
-        loadFromCloud();
+        // DATA SAFETY: Check if local data is empty before loading from cloud
+        const localEntries = localStorage.getItem('yunalesca_entries');
+        const localAchievements = localStorage.getItem('yunalesca_achievements');
+        const localDataEmpty = (!localEntries || JSON.parse(localEntries).length === 0) && 
+                              (!localAchievements || JSON.parse(localAchievements).length === 0);
+        
+        if (localDataEmpty) {
+            console.log('📥 Local data is empty, loading from cloud...');
+            // Try to load from cloud on startup
+            loadFromCloud();
+        } else {
+            console.log('📤 Local data exists, syncing to cloud...');
+            // Local data exists, sync to cloud instead
+            syncToCloud();
+        }
     } else {
         // No token, show local storage mode
         document.getElementById('cloud-sync-btn').innerHTML = '💾 Local Storage';
