@@ -1348,7 +1348,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Character interactions
     document.getElementById('character-portrait').addEventListener('click', uploadPortrait);
     document.getElementById('character-quote').addEventListener('click', updateCharacterQuote);
-    document.querySelector('.character-mood').addEventListener('click', updateCharacterMood);
+    document.getElementById('character-mood').addEventListener('click', updateCharacterMood);
 });
 
 // Make functions globally accessible
